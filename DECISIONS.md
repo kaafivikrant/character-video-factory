@@ -9,3 +9,9 @@
 - Use `node --import tsx` to avoid tsx CLI IPC listener restricted in this sandbox.
 - Use `pnpm run doctor`: pnpm's built-in doctor takes precedence over package scripts.
 - Cached Three 0.182.0, Vite 6.4.1, YAML 2.7.1, TS 5.9.3, tsx 4.23.15. No cached Vitest or three-vrm: Node's test runner temporarily replaces Vitest; VRM support will use an optional adapter with explicit dependency instructions.
+- Empty macOS speech output is fatal. Synthetic tones are allowed only in explicitly labeled test fixtures, never as a replacement for requested spoken dialogue.
+- Tested VideoToolbox execution, not just encoder listing: use libx264 when device encoding is unavailable.
+- Restored Mediabunny 1.50.3 from local cache for actual in-page WebCodecs MP4 muxing. Both complete transports are benchmarked when the browser can run; no speed claim without execution.
+- Optional three-vrm 3.5.5 is exact-pinned and handled by a Vite virtual module so offline mannequin builds work. Package source/license: https://github.com/pixiv/three-vrm (MIT).
+- Minimum 1.4 s shot duration takes precedence over a new-speaker cut on very short lines; hold both camera subject and preset until an allowed boundary.
+- No bypass of sandbox restrictions was attempted. Inaccessible speech, listeners, browser and network are recorded as blockers; docs give normal terminal commands.

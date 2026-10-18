@@ -1,3 +1,19 @@
-import {test} from 'node:test';import assert from 'node:assert/strict';import {loadSpec} from '../src/spec/load';import {specSchema} from '../src/spec/schema';
-test('all four fixtures validate',()=>{for(const id of ['sample_hook','short_8s','landscape','dialogue'])assert.equal(loadSpec(`specs/${id}.yaml`).id,id);});
-test('invalid speaker and traversal rejected',()=>{const s=loadSpec('specs/sample_hook.yaml');s.lines[0].speaker='unknown';s.characters[0].model='../secret';const r=specSchema.safeParse(s);assert.equal(r.success,false);if(!r.success)assert.ok(r.error.issues.some(i=>i.path.join('.')==='lines.0.speaker'));});
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { loadSpec } from "../src/spec/load";
+import { specSchema } from "../src/spec/schema";
+test("all four fixtures validate", () => {
+  for (const id of ["sample_hook", "short_8s", "landscape", "dialogue"])
+    assert.equal(loadSpec(`specs/${id}.yaml`).id, id);
+});
+test("invalid speaker and traversal rejected", () => {
+  const s = loadSpec("specs/sample_hook.yaml");
+  s.lines[0].speaker = "unknown";
+  s.characters[0].model = "../secret";
+  const r = specSchema.safeParse(s);
+  assert.equal(r.success, false);
+  if (!r.success)
+    assert.ok(
+      r.error.issues.some((i) => i.path.join(".") === "lines.0.speaker"),
+    );
+});

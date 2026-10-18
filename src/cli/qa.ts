@@ -1,1 +1,16 @@
-import {qa} from '../qa/checks';import {local} from '../util';const dir=process.argv[2];if(!dir){console.error('Usage: pnpm qa out/id');process.exitCode=1;}else qa(local(dir)).then(r=>{console.table(r.checks);process.exitCode=r.passed?0:1;}).catch(e=>{console.error(e.message);process.exitCode=1;});
+import { qa } from "../qa/checks";
+import { local } from "../util";
+const dir = process.argv[2];
+if (!dir) {
+  console.error("Usage: pnpm qa out/id");
+  process.exitCode = 1;
+} else
+  qa(local(dir))
+    .then((r) => {
+      console.table(r.checks);
+      process.exitCode = r.passed ? 0 : 1;
+    })
+    .catch((e) => {
+      console.error(e.message);
+      process.exitCode = 1;
+    });

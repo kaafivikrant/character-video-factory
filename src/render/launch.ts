@@ -1,3 +1,109 @@
-import {chromium} from 'playwright';import {existsSync,readdirSync,readFileSync} from 'node:fs';import {join,extname,resolve,relative} from 'node:path';import {homedir} from 'node:os';import {createServer} from 'node:http';
-export function chromiumPath(){if(process.env.CHROMIUM_PATH)return process.env.CHROMIUM_PATH;if(existsSync(chromium.executablePath()))return chromium.executablePath();const cache=join(homedir(),'Library/Caches/ms-playwright');if(existsSync(cache))for(const d of readdirSync(cache).filter(d=>/^chromium-/.test(d)).sort().reverse()){const p=join(cache,d,'chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing');if(existsSync(p))return p;}return undefined;}
-export async function launch(timeline:any){const mime={'.js':'text/javascript','.html':'text/html','.json':'application/json','.hdr':'application/octet-stream','.vrm':'application/octet-stream'};const server=createServer((req,res)=>{try{const url=decodeURIComponent(new URL(req.url!,'http://localhost').pathname);const base=url.startsWith('/assets/')?'assets':'dist';const suffix=base==='assets'?url.slice(8):url==='/'?'index.html':url.slice(1);const path=resolve(base,suffix);if(relative(resolve(base),path).startsWith('..'))throw new Error('outside root');res.setHeader('Content-Type',mime[extname(path)]||'application/octet-stream');res.end(readFileSync(path));}catch{res.writeHead(404);res.end('Not found');}});await new Promise<void>((ok,no)=>{server.once('error',no);server.listen(0,'127.0.0.1',()=>ok());});let browser:any;try{browser=await chromium.launch({headless:true,executablePath:chromiumPath(),timeout:20000,args:['--use-angle=metal','--ignore-gpu-blocklist','--enable-gpu-rasterization']});const page=await browser.newPage({viewport:{width:timeline.size[0],height:timeline.size[1]},deviceScaleFactor:1});const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(`http://127.0.0.1:${(server.address() as any).port}`);await page.waitForFunction(()=>Boolean((window as any).__stage),{},{timeout:20000});const info=await page.evaluate(t=>(window as any).__stage.load(t),timeline);console.log('WebGL renderer:',info.renderer);return {page,info,errors,close:async()=>{await browser.close();await new Promise<void>(r=>server.close(()=>r()));}};}catch(e){await browser?.close();server.close();throw e;}}
+import { chromium } from "playwright";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join, extname, resolve, relative } from "node:path";
+import { homedir } from "node:os";
+import { createServer } from "node:http";
+import { local } from "../util";
+export function chromiumPath() {
+  if (process.env.CHROMIUM_PATH) return process.env.CHROMIUM_PATH;
+  if (existsSync(chromium.executablePath())) return chromium.executablePath();
+  const cache = join(homedir(), "Library/Caches/ms-playwright");
+  if (existsSync(cache))
+    for (const d of readdirSync(cache)
+      .filter((d) => /^chromium-/.test(d))
+      .sort()
+      .reverse()) {
+      const p = join(
+        cache,
+        d,
+        "chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      );
+      if (existsSync(p)) return p;
+    }
+  return undefined;
+}
+export async function launch(timeline: any) {
+  const mime = {
+    ".js": "text/javascript",
+    ".html": "text/html",
+    ".json": "application/json",
+    ".hdr": "application/octet-stream",
+    ".vrm": "application/octet-stream",
+  };
+  const server = createServer((req, res) => {
+    try {
+      const url = decodeURIComponent(
+        new URL(req.url!, "http://localhost").pathname,
+      );
+      const base = /^\/assets\/(characters|hdri|animations|music|fonts)\//.test(
+        url,
+      )
+        ? "assets"
+        : "dist";
+      const suffix =
+        base === "assets"
+          ? url.slice(8)
+          : url === "/"
+            ? "index.html"
+            : url.slice(1);
+      const path = local(resolve(base, suffix));
+      if (relative(resolve(base), path).startsWith(".."))
+        throw new Error("outside root");
+      res.setHeader(
+        "Content-Type",
+        mime[extname(path)] || "application/octet-stream",
+      );
+      res.end(readFileSync(path));
+    } catch {
+      res.writeHead(404);
+      res.end("Not found");
+    }
+  });
+  await new Promise<void>((ok, no) => {
+    server.once("error", no);
+    server.listen(0, "127.0.0.1", () => ok());
+  });
+  let browser: any;
+  try {
+    browser = await chromium.launch({
+      headless: true,
+      executablePath: chromiumPath(),
+      timeout: 20000,
+      args: [
+        "--use-angle=metal",
+        "--ignore-gpu-blocklist",
+        "--enable-gpu-rasterization",
+      ],
+    });
+    const page = await browser.newPage({
+      viewport: { width: timeline.size[0], height: timeline.size[1] },
+      deviceScaleFactor: 1,
+    });
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    await page.goto(`http://127.0.0.1:${(server.address() as any).port}`);
+    await page.waitForFunction(
+      () => Boolean((window as any).__stage),
+      {},
+      { timeout: 20000 },
+    );
+    const info = await page.evaluate(
+      (t) => (window as any).__stage.load(t),
+      timeline,
+    );
+    console.log("WebGL renderer:", info.renderer);
+    return {
+      page,
+      info,
+      errors,
+      close: async () => {
+        await browser.close();
+        await new Promise<void>((r) => server.close(() => r()));
+      },
+    };
+  } catch (e) {
+    await browser?.close();
+    server.close();
+    throw e;
+  }
+}

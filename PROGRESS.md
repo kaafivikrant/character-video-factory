@@ -1,10 +1,43 @@
 # Progress
 
+## Current status — 2026-10-18
+
+Source implementation and documentation checkpoint complete; **end-to-end mission blocked, not complete**.
+
+| Milestone | Acceptance state |
+|---|---|
+| M0 | Build and doctor table pass; unavailable runtime capabilities explicitly listed |
+| M1 | Four fixtures and schema/error tests pass |
+| M2 | BLOCKED: macOS say produces no speech; Fish network/reference unavailable |
+| M3 | Unit tests and fixture timeline/ASS pass; real-audio acceptance blocked by M2 |
+| M4 | Builds; BLOCKED localhost listener/Chromium; no MP4 or determinism proof |
+| M5 | Viseme/smoothing tests pass; visual/lip-sync QA blocked |
+| M6 | Full sample attempted; fails at TTS and writes failure report |
+| M7 | QA correctly fails missing artifacts; contact inspection blocked |
+| M8 | Batch continues through all four failures; docs written; visual polish/benchmarks blocked |
+
+### Final verified outputs
+
+- `pnpm build`: 88 modules transformed, successful Vite build; Three bundle 609.43 kB, muxer split 168.77 kB.
+- `pnpm test`: 8 tests, 8 pass, 0 fail.
+- `pnpm test:media`: generated test tone only; libx264; 2.000021 s; 101 RMS windows; H.264/AAC; −14.09 LUFS.
+- `node --import tsx tools/browser-smoke.ts`: `listen EPERM: operation not permitted 127.0.0.1`.
+- Final `pnpm render specs/sample_hook.yaml`: exit 1, `TTS produced no usable speech`.
+- Final `pnpm qa out/sample_hook`: exit 1, `artifacts: FAIL`.
+- `pnpm batch 'specs/*.yaml'`: attempts all four, all fail speech; exit 1; summary written.
+- No character video, contact sheet, GPU proof, or visual determinism result exists. No visual inspection claimed.
+
+### Next / Morning TODO
+
+Run the README commands from a terminal with speech, localhost, browser and network access; supply an authorized Fish voice ID and environment key; inspect the short sample before the full sample. See REPORT.md for ranked implementation gaps and BENCHMARKS.md for measured versus unavailable results.
+
+## Historical work log
+
 ## Done
 - Detected macOS arm64, Node 22.22.3, pnpm 10.8.1, FFmpeg VideoToolbox/libx264.
 - Confirmed Fish documentation request shape.
 
-## In progress
+## Initial in-progress state (superseded above)
 - M0 scaffold and doctor; restoring offline dependencies.
 
 ## Blocked

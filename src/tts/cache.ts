@@ -1,2 +1,67 @@
-import {existsSync,mkdirSync,renameSync,rmSync} from 'node:fs';import {hash,duration,json,readJSON} from '../util';import {fish} from './fish';import {mock} from './mock';import {normalizeAudio} from './normalize';
-export async function synthesize(line:any,voice:string){const requested=process.env.TTS_PROVIDER||'auto';if(!['auto','fish','mock'].includes(requested))throw new Error('TTS_PROVIDER must be auto, fish or mock');let provider=requested==='mock'||requested==='auto'&&(!process.env.FISH_API_KEY||!voice)?'mock':'fish';mkdirSync('.cache/tts',{recursive:true});async function attempt(p:string){const key=hash({v:2,provider:p,model:p==='fish'?process.env.FISH_MODEL||'s2-pro':'macos-say-default',voice:p==='fish'?voice:'system',text:line.taggedText,prosody:{speed:line.speed,normalize:line.normalize}});const path=`.cache/tts/${key}.wav`,meta=path+'.json';if(existsSync(path)&&existsSync(meta)){const cached=readJSON(meta);if(Number.isFinite(cached.duration)&&cached.duration>.05)return {...cached,cacheHit:true};rmSync(path,{force:true});rmSync(meta,{force:true});}const raw=`.cache/tts/${key}.raw.wav`;try{await(p==='fish'?fish(line.taggedText,voice,line.speed,line.normalize,raw):mock(line.text,line.speed,raw));await normalizeAudio(raw,path+'.tmp.wav');renameSync(path+'.tmp.wav',path);const result={path,duration:await duration(path),provider:p,MOCK:p==='mock',cacheHit:false};if(!Number.isFinite(result.duration)||result.duration<.05)throw new Error('TTS produced no usable speech');json(meta,result);return result;}finally{for(const f of [raw,raw+'.aiff',path+'.tmp.wav'])rmSync(f,{force:true});}}try{return await attempt(provider);}catch(e){if(requested==='auto'&&provider==='fish'){const result=await attempt('mock');return {...result,fallback:'Fish failed; used mock'};}throw e;}}
+import { existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
+import { hash, duration, json, readJSON } from "../util";
+import { fish } from "./fish";
+import { mock } from "./mock";
+import { normalizeAudio } from "./normalize";
+export async function synthesize(line: any, voice: string) {
+  const requested = process.env.TTS_PROVIDER || "auto";
+  if (!["auto", "fish", "mock"].includes(requested))
+    throw new Error("TTS_PROVIDER must be auto, fish or mock");
+  let provider =
+    requested === "mock" ||
+    (requested === "auto" && (!process.env.FISH_API_KEY || !voice))
+      ? "mock"
+      : "fish";
+  mkdirSync(".cache/tts", { recursive: true });
+  async function attempt(p: string) {
+    const key = hash({
+      v: 2,
+      provider: p,
+      model:
+        p === "fish" ? process.env.FISH_MODEL || "s2-pro" : "macos-say-default",
+      voice: p === "fish" ? voice : "system",
+      text: line.taggedText,
+      prosody: { speed: line.speed, normalize: line.normalize },
+    });
+    const path = `.cache/tts/${key}.wav`,
+      meta = path + ".json";
+    if (existsSync(path) && existsSync(meta)) {
+      const cached = readJSON(meta);
+      if (Number.isFinite(cached.duration) && cached.duration > 0.05)
+        return { ...cached, cacheHit: true };
+      rmSync(path, { force: true });
+      rmSync(meta, { force: true });
+    }
+    const raw = `.cache/tts/${key}.raw.wav`;
+    try {
+      await (p === "fish"
+        ? fish(line.taggedText, voice, line.speed, line.normalize, raw)
+        : mock(line.text, line.speed, raw));
+      await normalizeAudio(raw, path + ".tmp.wav");
+      renameSync(path + ".tmp.wav", path);
+      const result = {
+        path,
+        duration: await duration(path),
+        provider: p,
+        MOCK: p === "mock",
+        cacheHit: false,
+      };
+      if (!Number.isFinite(result.duration) || result.duration < 0.05)
+        throw new Error("TTS produced no usable speech");
+      json(meta, result);
+      return result;
+    } finally {
+      for (const f of [raw, raw + ".aiff", path + ".tmp.wav"])
+        rmSync(f, { force: true });
+    }
+  }
+  try {
+    return await attempt(provider);
+  } catch (e) {
+    if (requested === "auto" && provider === "fish") {
+      const result = await attempt("mock");
+      return { ...result, fallback: "Fish failed; used mock" };
+    }
+    throw e;
+  }
+}

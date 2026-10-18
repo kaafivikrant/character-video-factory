@@ -1,4 +1,154 @@
-import {spawn} from 'node:child_process';import {once} from 'node:events';import {run,local} from '../util';
-export async function chooseEncoder(){try{await run('ffmpeg',['-v','error','-f','lavfi','-i','color=s=64x64:d=0.1','-c:v','h264_videotoolbox','-f','null','-']);return 'h264_videotoolbox';}catch{return 'libx264';}}
-export function videoEncoder(path:string,fps:number,encoder:string){const proc=spawn('ffmpeg',['-v','error','-y','-f','image2pipe','-vcodec','mjpeg','-framerate',String(fps),'-i','pipe:0','-an','-c:v',encoder,...(encoder==='libx264'?['-crf','18','-preset','fast']:['-b:v','8M']),'-pix_fmt','yuv420p','-movflags','+faststart',path],{stdio:['pipe','ignore','pipe']});let error='';proc.stderr.on('data',b=>error+=b);proc.stdin.on('error',()=>{});const done=new Promise<void>((ok,no)=>{proc.on('error',no);proc.on('close',code=>code===0?ok():no(new Error('Encoder failed: '+error)));});done.catch(()=>{});return {write:async(data:Buffer)=>{if(proc.exitCode!==null)throw new Error(error);if(!proc.stdin.write(data))await Promise.race([once(proc.stdin,'drain'),done.then(()=>{throw new Error('Encoder closed');})]);},finish:async()=>{proc.stdin.end();await done;},kill:()=>proc.kill('SIGTERM')};}
-export async function mux(t:any,dir:string,encoder:string){const inputs=t.lines.flatMap((l:any)=>['-i',local(l.audio.path)]);const filters=t.lines.map((l:any,i:number)=>`[${i}:a]adelay=${Math.round(l.start*1000)}:all=1[a${i}]`);let mixed=t.lines.map((_:any,i:number)=>`[a${i}]`).join('')+`amix=inputs=${t.lines.length}:normalize=0,apad,atrim=duration=${t.total}[voice]`;filters.push(mixed);let output='voice';if(t.spec.music){const music=local(t.spec.music);inputs.push('-stream_loop','-1','-i',music);const idx=t.lines.length;filters.push(`[voice]asplit=2[vmain][vside]`,`[${idx}:a]loudnorm=I=-22:TP=-3:LRA=11,atrim=duration=${t.total}[music]`,`[music][vside]sidechaincompress=threshold=0.025:ratio=8:attack=15:release=350[duck]`,`[vmain][duck]amix=inputs=2:normalize=0[mixed]`);output='mixed';}filters.push(`[${output}]loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000[out]`);await run('ffmpeg',['-v','error','-y',...inputs,'-filter_complex',filters.join(';'),'-map','[out]','-ac','1','-c:a','pcm_s16le',`${dir}/audio.wav`],{timeout:300000});await run('ffmpeg',['-v','error','-y','-i',`${dir}/silent.mp4`,'-i',`${dir}/audio.wav`,'-map','0:v:0','-map','1:a:0','-c:v','copy','-c:a','aac','-b:a','192k','-ar','48000','-t',String(t.total),'-movflags','+faststart',`${dir}/video.mp4`],{timeout:300000});}
+import { spawn } from "node:child_process";
+import { once } from "node:events";
+import { run, local } from "../util";
+export async function chooseEncoder() {
+  try {
+    await run("ffmpeg", [
+      "-v",
+      "error",
+      "-f",
+      "lavfi",
+      "-i",
+      "color=s=64x64:d=0.1",
+      "-c:v",
+      "h264_videotoolbox",
+      "-f",
+      "null",
+      "-",
+    ]);
+    return "h264_videotoolbox";
+  } catch {
+    return "libx264";
+  }
+}
+export function videoEncoder(path: string, fps: number, encoder: string) {
+  const proc = spawn(
+    "ffmpeg",
+    [
+      "-v",
+      "error",
+      "-y",
+      "-f",
+      "image2pipe",
+      "-vcodec",
+      "mjpeg",
+      "-framerate",
+      String(fps),
+      "-i",
+      "pipe:0",
+      "-an",
+      "-c:v",
+      encoder,
+      ...(encoder === "libx264"
+        ? ["-crf", "18", "-preset", "fast"]
+        : ["-b:v", "8M"]),
+      "-pix_fmt",
+      "yuv420p",
+      "-movflags",
+      "+faststart",
+      path,
+    ],
+    { stdio: ["pipe", "ignore", "pipe"] },
+  );
+  let error = "";
+  proc.stderr.on("data", (b) => (error += b));
+  proc.stdin.on("error", () => {});
+  const done = new Promise<void>((ok, no) => {
+    proc.on("error", no);
+    proc.on("close", (code) =>
+      code === 0 ? ok() : no(new Error("Encoder failed: " + error)),
+    );
+  });
+  done.catch(() => {});
+  return {
+    write: async (data: Buffer) => {
+      if (proc.exitCode !== null) throw new Error(error);
+      if (!proc.stdin.write(data))
+        await Promise.race([
+          once(proc.stdin, "drain"),
+          done.then(() => {
+            throw new Error("Encoder closed");
+          }),
+        ]);
+    },
+    finish: async () => {
+      proc.stdin.end();
+      await done;
+    },
+    kill: () => proc.kill("SIGTERM"),
+  };
+}
+export async function mux(t: any, dir: string, encoder: string) {
+  const inputs = t.lines.flatMap((l: any) => ["-i", local(l.audio.path)]);
+  const filters = t.lines.map(
+    (l: any, i: number) =>
+      `[${i}:a]adelay=${Math.round(l.start * 1000)}:all=1[a${i}]`,
+  );
+  let mixed =
+    t.lines.map((_: any, i: number) => `[a${i}]`).join("") +
+    `amix=inputs=${t.lines.length}:normalize=0,apad,atrim=duration=${t.total}[voice]`;
+  filters.push(mixed);
+  let output = "voice";
+  if (t.spec.music) {
+    const music = local(t.spec.music);
+    inputs.push("-stream_loop", "-1", "-i", music);
+    const idx = t.lines.length;
+    filters.push(
+      `[voice]asplit=2[vmain][vside]`,
+      `[${idx}:a]loudnorm=I=-22:TP=-3:LRA=11,atrim=duration=${t.total}[music]`,
+      `[music][vside]sidechaincompress=threshold=0.025:ratio=8:attack=15:release=350[duck]`,
+      `[vmain][duck]amix=inputs=2:normalize=0[mixed]`,
+    );
+    output = "mixed";
+  }
+  filters.push(`[${output}]loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000[out]`);
+  await run(
+    "ffmpeg",
+    [
+      "-v",
+      "error",
+      "-y",
+      ...inputs,
+      "-filter_complex",
+      filters.join(";"),
+      "-map",
+      "[out]",
+      "-ac",
+      "1",
+      "-c:a",
+      "pcm_s16le",
+      `${dir}/audio.wav`,
+    ],
+    { timeout: 300000 },
+  );
+  await run(
+    "ffmpeg",
+    [
+      "-v",
+      "error",
+      "-y",
+      "-i",
+      `${dir}/silent.mp4`,
+      "-i",
+      `${dir}/audio.wav`,
+      "-map",
+      "0:v:0",
+      "-map",
+      "1:a:0",
+      "-c:v",
+      "copy",
+      "-c:a",
+      "aac",
+      "-b:a",
+      "192k",
+      "-ar",
+      "48000",
+      "-t",
+      String(t.total),
+      "-movflags",
+      "+faststart",
+      `${dir}/video.mp4`,
+    ],
+    { timeout: 300000 },
+  );
+}

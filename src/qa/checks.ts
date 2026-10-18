@@ -1,10 +1,248 @@
-import {existsSync,readFileSync} from 'node:fs';import {spawn} from 'node:child_process';import {run,readJSON,json} from '../util';import {contactSheet} from './contactSheet';import {launch} from '../render/launch';import {createHash} from 'node:crypto';
-export async function qa(dir:string){const previous=existsSync(`${dir}/report.json`)?readJSON(`${dir}/report.json`):{};const checks:any[]=[];const add=(name:string,pass:boolean,detail:any)=>checks.push({name,status:pass?'PASS':'FAIL',detail});if(!existsSync(`${dir}/video.mp4`)||!existsSync(`${dir}/timeline.json`)){add('artifacts',false,'video.mp4 and/or timeline.json missing; pipeline incomplete');const result={...previous,passed:false,checks,checkedAt:new Date().toISOString()};json(`${dir}/report.json`,result);return result;}const t=readJSON(`${dir}/timeline.json`);try{const probe=JSON.parse((await run('ffprobe',['-v','error','-show_format','-show_streams','-of','json',`${dir}/video.mp4`])).stdout),v=probe.streams.find((s:any)=>s.codec_type==='video'),a=probe.streams.find((s:any)=>s.codec_type==='audio');const [n,d]=v.avg_frame_rate.split('/').map(Number);add('codec',v.codec_name==='h264'&&v.pix_fmt==='yuv420p'&&a?.codec_name==='aac',{video:v.codec_name,pixelFormat:v.pix_fmt,audio:a?.codec_name});add('dimensions/fps',v.width===t.size[0]&&v.height===t.size[1]&&Math.abs(n/d-t.fps)<.001,{width:v.width,height:v.height,fps:n/d});add('duration',Math.abs(Number(probe.format.duration)-t.total)<=.3,{actual:probe.format.duration,expected:t.total});const audio=await run('ffmpeg',['-hide_banner','-i',`${dir}/video.mp4`,'-af','loudnorm=I=-14:TP=-1.5:LRA=11:print_format=json','-f','null','-']);const match=audio.stderr.match(/\{\s*"input_i"[\s\S]*?\}/);const loudness=match?JSON.parse(match[0]):{};add('loudness',Number(loudness.input_i)>=-15&&Number(loudness.input_i)<=-13,loudness.input_i);add('no clipping',Number(loudness.input_tp)<0,loudness.input_tp);const silence=await run('ffmpeg',['-hide_banner','-i',`${dir}/audio.wav`,'-af','silencedetect=n=-40dB:d=0.7','-f','null','-']);let silentStart:number|null=null;const gaps:any[]=[];for(const m of silence.stderr.matchAll(/silence_(start|end): ([\d.]+)/g)){if(m[1]==='start')silentStart=Number(m[2]);else if(silentStart!==null){const end=Math.min(Number(m[2]),t.voiceEnd),start=Math.max(silentStart,t.lines[0].start);if(end-start>.7)gaps.push({start,end});silentStart=null;}}if(silentStart!==null&&t.voiceEnd-silentStart>.7)gaps.push({start:silentStart,end:t.voiceEnd});add('speech gaps',gaps.length===0,gaps);
- add('caption alignment',t.lines.every((l:any)=>Math.abs(t.captions.find((c:any)=>c.line===l.index)?.start-l.start)<=1/t.fps+1e-6)&&t.captions[0].start<=.5,'first chunk of each line within one frame');const lips=readJSON(`${dir}/lipsync.json`);add('lip motion',lips.every((l:any)=>{const vals=l.track.map((w:any)=>Object.values(w).reduce((a:number,b:number)=>a+b,0)) as number[];const mean=vals.reduce((a,b)=>a+b,0)/vals.length;return Math.sqrt(vals.reduce((s,v)=>s+(v-mean)**2,0)/vals.length)>.025;}),'per-line mouth-opening standard deviation > .025');
- const rendered=readJSON(`${dir}/render.json`);add('renderer errors',rendered.errors.length===0,rendered.errors);add('GPU evidence',rendered.gpuVerified,rendered.renderer);add('within-run determinism',rendered.determinism.length===5&&rendered.determinism.every((s:any)=>s.hash===s.repeatHash),rendered.determinism);
- // Inspect decoded frame luminance at 0.5 second intervals.
- const frameBytes=64*64;const proc=spawn('ffmpeg',['-v','error','-i',`${dir}/video.mp4`,'-vf','fps=2,scale=64:64,format=gray','-f','rawvideo','pipe:1']);let pending=Buffer.alloc(0),idx=0,bad:number[]=[];await new Promise<void>((ok,no)=>{proc.on('error',no);proc.stdout.on('data',chunk=>{pending=Buffer.concat([pending,chunk]);while(pending.length>=frameBytes){const data=pending.subarray(0,frameBytes);pending=pending.subarray(frameBytes);const min=Math.min(...data),max=Math.max(...data);if(idx*.5<t.outroStart&&(max<8||min>247))bad.push(idx*.5);idx++;}});proc.on('close',c=>c===0?ok():no(new Error('Frame decode failed')));});add('nonblank frames',bad.length===0&&idx>0,{sampled:idx,badSeconds:bad});
- const diff=await run('ffmpeg',['-hide_banner','-i',`${dir}/foreground.jpg`,'-i',`${dir}/background.jpg`,'-lavfi','[0:v][1:v]blend=all_mode=difference,signalstats,metadata=print','-f','null','-']);const difference=Number(diff.stderr.match(/lavfi.signalstats.YAVG=([\d.]+)/)?.[1]||0);add('character visible',difference>.3,{averageDifference:difference,note:'captions included; inspect contact sheet for framing'});
- try{const stage=await launch(t);try{const hashes=[];for(const s of rendered.determinism){const b=Buffer.from(await stage.page.evaluate(i=>(window as any).__stage.renderFrame(i),s.frame),'base64');hashes.push(createHash('sha256').update(b).digest('hex'));}add('fresh-browser determinism',hashes.every((h,i)=>h===rendered.determinism[i].hash),hashes);}finally{await stage.close();}}catch(e){add('fresh-browser determinism',false,e.message);}
- await contactSheet(dir,t);add('contact sheet',existsSync(`${dir}/contact.png`),'contact.png and three full-resolution stills generated; visual human/agent inspection required');
- }catch(e){add('QA execution',false,e.message);}const result={...previous,passed:checks.every(c=>c.status==='PASS'),checks,checkedAt:new Date().toISOString()};json(`${dir}/report.json`,result);return result;}
+import { existsSync, readFileSync } from "node:fs";
+import { spawn } from "node:child_process";
+import { run, readJSON, json } from "../util";
+import { contactSheet } from "./contactSheet";
+import { launch } from "../render/launch";
+import { createHash } from "node:crypto";
+export async function qa(dir: string) {
+  const previous = existsSync(`${dir}/report.json`)
+    ? readJSON(`${dir}/report.json`)
+    : {};
+  const checks: any[] = [];
+  const add = (name: string, pass: boolean, detail: any) =>
+    checks.push({ name, status: pass ? "PASS" : "FAIL", detail });
+  if (!existsSync(`${dir}/video.mp4`) || !existsSync(`${dir}/timeline.json`)) {
+    add(
+      "artifacts",
+      false,
+      "video.mp4 and/or timeline.json missing; pipeline incomplete",
+    );
+    const result = {
+      ...previous,
+      passed: false,
+      checks,
+      checkedAt: new Date().toISOString(),
+    };
+    json(`${dir}/report.json`, result);
+    return result;
+  }
+  const t = readJSON(`${dir}/timeline.json`);
+  try {
+    const probe = JSON.parse(
+        (
+          await run("ffprobe", [
+            "-v",
+            "error",
+            "-show_format",
+            "-show_streams",
+            "-of",
+            "json",
+            `${dir}/video.mp4`,
+          ])
+        ).stdout,
+      ),
+      v = probe.streams.find((s: any) => s.codec_type === "video"),
+      a = probe.streams.find((s: any) => s.codec_type === "audio");
+    const [n, d] = v.avg_frame_rate.split("/").map(Number);
+    add(
+      "codec",
+      v.codec_name === "h264" &&
+        v.pix_fmt === "yuv420p" &&
+        a?.codec_name === "aac",
+      { video: v.codec_name, pixelFormat: v.pix_fmt, audio: a?.codec_name },
+    );
+    add(
+      "dimensions/fps",
+      v.width === t.size[0] &&
+        v.height === t.size[1] &&
+        Math.abs(n / d - t.fps) < 0.001,
+      { width: v.width, height: v.height, fps: n / d },
+    );
+    add("duration", Math.abs(Number(probe.format.duration) - t.total) <= 0.3, {
+      actual: probe.format.duration,
+      expected: t.total,
+    });
+    const audio = await run("ffmpeg", [
+      "-hide_banner",
+      "-i",
+      `${dir}/video.mp4`,
+      "-af",
+      "loudnorm=I=-14:TP=-1.5:LRA=11:print_format=json",
+      "-f",
+      "null",
+      "-",
+    ]);
+    const match = audio.stderr.match(/\{\s*"input_i"[\s\S]*?\}/);
+    const loudness = match ? JSON.parse(match[0]) : {};
+    add(
+      "loudness",
+      Number(loudness.input_i) >= -15 && Number(loudness.input_i) <= -13,
+      loudness.input_i,
+    );
+    add("no clipping", Number(loudness.input_tp) < 0, loudness.input_tp);
+    const silence = await run("ffmpeg", [
+      "-hide_banner",
+      "-i",
+      `${dir}/audio.wav`,
+      "-af",
+      "silencedetect=n=-40dB:d=0.7",
+      "-f",
+      "null",
+      "-",
+    ]);
+    let silentStart: number | null = null;
+    const gaps: any[] = [];
+    for (const m of silence.stderr.matchAll(/silence_(start|end): ([\d.]+)/g)) {
+      if (m[1] === "start") silentStart = Number(m[2]);
+      else if (silentStart !== null) {
+        const end = Math.min(Number(m[2]), t.voiceEnd),
+          start = Math.max(silentStart, t.lines[0].start);
+        if (end - start > 0.7) gaps.push({ start, end });
+        silentStart = null;
+      }
+    }
+    if (silentStart !== null && t.voiceEnd - silentStart > 0.7)
+      gaps.push({ start: silentStart, end: t.voiceEnd });
+    add("speech gaps", gaps.length === 0, gaps);
+    add(
+      "caption alignment",
+      t.lines.every(
+        (l: any) =>
+          Math.abs(
+            t.captions.find((c: any) => c.line === l.index)?.start - l.start,
+          ) <=
+          1 / t.fps + 1e-6,
+      ) && t.captions[0].start <= 0.5,
+      "first chunk of each line within one frame",
+    );
+    const lips = readJSON(`${dir}/lipsync.json`);
+    add(
+      "lip motion",
+      lips.every((l: any) => {
+        const vals = l.track.map((w: any) =>
+          Object.values(w).reduce((a: number, b: number) => a + b, 0),
+        ) as number[];
+        const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+        return (
+          Math.sqrt(
+            vals.reduce((s, v) => s + (v - mean) ** 2, 0) / vals.length,
+          ) > 0.025
+        );
+      }),
+      "per-line mouth-opening standard deviation > .025",
+    );
+    const rendered = readJSON(`${dir}/render.json`);
+    add(
+      "silent mouths",
+      rendered.mouthChecks?.length > 0 &&
+        rendered.mouthChecks.every((c) => c.closed),
+      "sampled renderer weights: pauses and non-speakers closed",
+    );
+    add("renderer errors", rendered.errors.length === 0, rendered.errors);
+    add("GPU evidence", rendered.gpuVerified, rendered.renderer);
+    add(
+      "within-run determinism",
+      rendered.determinism.length === 5 &&
+        rendered.determinism.every((s: any) => s.hash === s.repeatHash),
+      rendered.determinism,
+    );
+    // Inspect decoded frame luminance at 0.5 second intervals.
+    const frameBytes = 64 * 64;
+    const proc = spawn("ffmpeg", [
+      "-v",
+      "error",
+      "-i",
+      `${dir}/video.mp4`,
+      "-vf",
+      "fps=2,scale=64:64,format=gray",
+      "-f",
+      "rawvideo",
+      "pipe:1",
+    ]);
+    let pending = Buffer.alloc(0),
+      idx = 0,
+      bad: number[] = [];
+    await new Promise<void>((ok, no) => {
+      proc.on("error", no);
+      proc.stdout.on("data", (chunk) => {
+        pending = Buffer.concat([pending, chunk]);
+        while (pending.length >= frameBytes) {
+          const data = pending.subarray(0, frameBytes);
+          pending = pending.subarray(frameBytes);
+          const min = Math.min(...data),
+            max = Math.max(...data);
+          if (idx * 0.5 < t.outroStart && (max < 8 || min > 247))
+            bad.push(idx * 0.5);
+          idx++;
+        }
+      });
+      proc.on("close", (c) =>
+        c === 0 ? ok() : no(new Error("Frame decode failed")),
+      );
+    });
+    add("nonblank frames", bad.length === 0 && idx > 0, {
+      sampled: idx,
+      badSeconds: bad,
+    });
+    const diff = await run("ffmpeg", [
+      "-hide_banner",
+      "-i",
+      `${dir}/foreground.jpg`,
+      "-i",
+      `${dir}/background.jpg`,
+      "-lavfi",
+      "[0:v][1:v]blend=all_mode=difference,signalstats,metadata=print",
+      "-f",
+      "null",
+      "-",
+    ]);
+    const difference = Number(
+      diff.stderr.match(/lavfi.signalstats.YAVG=([\d.]+)/)?.[1] || 0,
+    );
+    add("character visible", difference > 0.3, {
+      averageDifference: difference,
+      note: "captions excluded; inspect contact sheet for framing",
+    });
+    try {
+      const stage = await launch(t);
+      try {
+        const hashes = [];
+        for (const s of rendered.determinism) {
+          const b = Buffer.from(
+            await stage.page.evaluate(
+              (i) => (window as any).__stage.renderFrame(i),
+              s.frame,
+            ),
+            "base64",
+          );
+          hashes.push(createHash("sha256").update(b).digest("hex"));
+        }
+        add(
+          "fresh-browser determinism",
+          hashes.every((h, i) => h === rendered.determinism[i].hash),
+          hashes,
+        );
+      } finally {
+        await stage.close();
+      }
+    } catch (e) {
+      add("fresh-browser determinism", false, e.message);
+    }
+    await contactSheet(dir, t);
+    add(
+      "contact sheet",
+      existsSync(`${dir}/contact.png`),
+      "contact.png and three full-resolution stills generated; visual human/agent inspection required",
+    );
+  } catch (e) {
+    add("QA execution", false, e.message);
+  }
+  const result = {
+    ...previous,
+    passed: checks.every((c) => c.status === "PASS"),
+    checks,
+    checkedAt: new Date().toISOString(),
+  };
+  json(`${dir}/report.json`, result);
+  return result;
+}

@@ -1,2 +1,44 @@
-import {writeFileSync} from 'node:fs';
-export async function fish(text:string,voice:string,speed:number,normalize:boolean,path:string){if(!process.env.FISH_API_KEY)throw new Error('Fish key not in runtime environment');if(!voice)throw new Error('Fish reference_id missing');for(let attempt=0;attempt<4;attempt++){try{const response=await fetch('https://api.fish.audio/v1/tts',{method:'POST',headers:{Authorization:`Bearer ${process.env.FISH_API_KEY}`,'Content-Type':'application/json',model:process.env.FISH_MODEL||'s2-pro'},body:JSON.stringify({text,reference_id:voice,format:'wav',sample_rate:44100,prosody:{speed,volume:0},latency:'normal',normalize,temperature:.7,top_p:.7}),signal:AbortSignal.timeout(60000)});if(!response.ok)throw new Error(`Fish HTTP ${response.status}`);const data=Buffer.from(await response.arrayBuffer());if(data.length<44)throw new Error('Fish returned empty audio');writeFileSync(path,data);return;}catch(e){if(attempt===3)throw e;await new Promise(r=>setTimeout(r,1000*2**attempt));}}}
+import { writeFileSync } from "node:fs";
+export async function fish(
+  text: string,
+  voice: string,
+  speed: number,
+  normalize: boolean,
+  path: string,
+) {
+  if (!process.env.FISH_API_KEY)
+    throw new Error("Fish key not in runtime environment");
+  if (!voice) throw new Error("Fish reference_id missing");
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      const response = await fetch("https://api.fish.audio/v1/tts", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.FISH_API_KEY}`,
+          "Content-Type": "application/json",
+          model: process.env.FISH_MODEL || "s2-pro",
+        },
+        body: JSON.stringify({
+          text,
+          reference_id: voice,
+          format: "wav",
+          sample_rate: 44100,
+          prosody: { speed, volume: 0 },
+          latency: "normal",
+          normalize,
+          temperature: 0.7,
+          top_p: 0.7,
+        }),
+        signal: AbortSignal.timeout(60000),
+      });
+      if (!response.ok) throw new Error(`Fish HTTP ${response.status}`);
+      const data = Buffer.from(await response.arrayBuffer());
+      if (data.length < 44) throw new Error("Fish returned empty audio");
+      writeFileSync(path, data);
+      return;
+    } catch (e) {
+      if (attempt === 3) throw e;
+      await new Promise((r) => setTimeout(r, 1000 * 2 ** attempt));
+    }
+  }
+}

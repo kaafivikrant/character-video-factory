@@ -1,2 +1,19 @@
-import {run} from '../util';
-export async function normalizeAudio(input:string,output:string){await run('ffmpeg',['-v','error','-y','-i',input,'-af','silenceremove=start_periods=1:start_duration=0.01:start_threshold=-45dB:start_silence=0.04,areverse,silenceremove=start_periods=1:start_duration=0.01:start_threshold=-45dB:start_silence=0.08,areverse,loudnorm=I=-16:TP=-2:LRA=11','-ar','48000','-ac','1','-c:a','pcm_s16le',output]);}
+import { run } from "../util";
+export async function normalizeAudio(input: string, output: string) {
+  await run("ffmpeg", [
+    "-v",
+    "error",
+    "-y",
+    "-i",
+    input,
+    "-af",
+    "silenceremove=start_periods=1:start_duration=0.01:start_threshold=-45dB:start_silence=0.04,areverse,silenceremove=start_periods=1:start_duration=0.01:start_threshold=-45dB:start_silence=0.08,areverse,loudnorm=I=-16:TP=-2:LRA=11",
+    "-ar",
+    "48000",
+    "-ac",
+    "1",
+    "-c:a",
+    "pcm_s16le",
+    output,
+  ]);
+}

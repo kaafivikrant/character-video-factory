@@ -1,2 +1,17 @@
-import {RGBELoader} from 'three/examples/jsm/loaders/RGBELoader.js';import * as THREE from 'three';
-export async function hdri(scene:any,name:string){const tex=await new RGBELoader().loadAsync(`/assets/hdri/${name}.hdr`);tex.mapping=THREE.EquirectangularReflectionMapping;scene.environment=tex;scene.background=tex;const floor=new THREE.Mesh(new THREE.CircleGeometry(30,48),new THREE.MeshStandardMaterial({color:'#79847c',roughness:.9}));floor.rotation.x=-Math.PI/2;floor.position.y=-.08;floor.receiveShadow=true;scene.add(floor);return {update:(_:number)=>{}};}
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+import * as THREE from "three";
+export async function hdri(scene: any, name: string) {
+  const tex = await new RGBELoader().loadAsync(`/assets/hdri/${name}.hdr`);
+  tex.mapping = THREE.EquirectangularReflectionMapping;
+  scene.environment = tex;
+  scene.background = tex;
+  const floor = new THREE.Mesh(
+    new THREE.CircleGeometry(30, 48),
+    new THREE.MeshStandardMaterial({ color: "#79847c", roughness: 0.9 }),
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -0.08;
+  floor.receiveShadow = true;
+  scene.add(floor);
+  return { update: (_: number) => {} };
+}
