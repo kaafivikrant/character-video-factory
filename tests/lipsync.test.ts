@@ -1,0 +1,3 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {viseme,smoothTrack} from '../src/lipsync/visemeMap';
+test('Rhubarb map is bounded and closed shapes are silent',()=>{for(const s of 'ABCDEFGHX'){const w=viseme(s,1);assert.ok(Object.values(w).reduce((a,b)=>a+b,0)<=1);}assert.equal(viseme('D',1).aa,1);assert.equal(viseme('A',1).aa,0);assert.equal(viseme('X',1).aa,0);});
+test('spring attack and release have real motion without overshoot',()=>{const tr=smoothTrack([{start:.1,end:.3,value:'D'},{start:.3,end:.8,value:'X'}],1,30,1);assert.ok(tr[5].aa>.5);assert.ok(tr.at(-1).aa<.001);assert.ok(tr.every(w=>Object.values(w).every(x=>x>=0&&x<=1)));});

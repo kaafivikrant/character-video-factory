@@ -38,3 +38,9 @@
 ### M3 evidence
 - `pnpm test`: 5/5 pass (schema, tag stacking/pitch variation, caption chunks, measured timeline math).
 - `node --import tsx tools/timeline-smoke.ts`: TEST ONLY timeline and ASS generated using fixture durations; live audio acceptance remains dependent on M2.
+
+### M4 / M5 implementation
+- Two procedural scenes, original low-poly mannequin, optional VRM adapter, deterministic frame API, hard-cut camera presets, canvas caption fallback, frame pipe encoder implemented.
+- Energy/Rhubarb tracks, bounded spring smoothing, gesture poses, expression blending, seeded blinking implemented.
+- `pnpm test`: 7/7 pass, including viseme bounds and attack/release.
+- Chromium launch FAIL: sandbox SIGABRT before page, process cleanup reports EPERM. No rendered frames exist; visual acceptance and GPU proof remain BLOCKED.
