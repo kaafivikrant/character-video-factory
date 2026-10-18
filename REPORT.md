@@ -57,3 +57,7 @@ Fish retries/cache, Rhubarb and energy tracks, captions, procedural lake/night s
 7. Collect real benchmarks, implement automatic quality cuts and complete stage caching, then revisit known gaps.
 
 The final attempted sample QA is attached locally at `out/sample_hook/report.json`. It reports failure, not completion.
+
+## Follow-up delivery: Atlas + timed Khan script
+
+New source builds and 13 tests pass. The exact timing spec is `specs/khan_30s.yaml`; original detailed character export is `assets/characters/atlas.glb`. Render was attempted and failed with `Fish reference_id missing`. Key is present in .env, but FISH_VOICE_HERO is missing. Browser sandbox restrictions remain. No 30-second MP4 exists yet; the failed QA report is `out/khan_30s/report.json`. No new character visual inspection could be performed.

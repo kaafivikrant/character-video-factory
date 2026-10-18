@@ -10,13 +10,18 @@ export function buildTimeline(spec: Spec, audio: any[]) {
   const lines = directLines(spec.lines, spec.seed).map((l, i) => {
     if (!Number.isFinite(audio[i].duration) || audio[i].duration <= 0)
       throw new Error(`Invalid audio duration at line ${i}`);
-    const start = cursor,
-      end = start + audio[i].duration;
+    const start = l.start ?? cursor,
+      end = l.end ?? start + audio[i].duration;
+    if (
+      l.end !== undefined &&
+      Math.abs(audio[i].duration - (end - start)) > 1 / spec.fps
+    )
+      throw new Error(`Audio must be fitted to timed slot at line ${i}`);
     cursor = end + l.pause_after;
     return { ...l, index: i, start, end, audio: audio[i] };
   });
   const voiceEnd = lines.at(-1)!.end;
-  const outroStart = voiceEnd + 0.15;
+  const outroStart = voiceEnd + (spec.lines[0].start !== undefined ? 0 : 0.15);
   const total =
     outroStart + (spec.outro.type === "card" ? spec.outro.duration : 0);
   return {

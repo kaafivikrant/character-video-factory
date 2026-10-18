@@ -45,7 +45,7 @@ export function timeChunks(
         : cursor + ((end - start) * text.replace(/\s/g, "").length) / total;
     return {
       text,
-      start: Math.ceil((a - 1e-8) * fps) / fps,
+      start: Math.max(0, Math.ceil((a - 1e-8) * fps) / fps),
       end: Math.ceil((cursor - 1e-8) * fps) / fps,
     };
   });

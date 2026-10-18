@@ -90,6 +90,8 @@ export const specSchema = z
             shot: z.enum(["full", "mid", "close", "auto"]).default("auto"),
             gesture: z.enum(gestures).optional(),
             pause_after: z.number().min(0).max(0.6).optional(),
+            start: z.number().nonnegative().optional(),
+            end: z.number().positive().optional(),
             tags: z
               .array(
                 z
@@ -129,6 +131,24 @@ export const specSchema = z
   })
   .strict()
   .superRefine((s, ctx) => {
+    const timed = s.lines.some(
+      (l) => l.start !== undefined || l.end !== undefined,
+    );
+    if (timed)
+      s.lines.forEach((l, i) => {
+        if (l.start === undefined || l.end === undefined || l.end <= l.start)
+          ctx.addIssue({
+            code: "custom",
+            path: ["lines", i, "end"],
+            message: "Timed scripts require start < end on every line",
+          });
+        if (i && l.start < s.lines[i - 1].end)
+          ctx.addIssue({
+            code: "custom",
+            path: ["lines", i, "start"],
+            message: "Timed speech slots must not overlap",
+          });
+      });
     const ids = s.characters.map((c) => c.id);
     if (new Set(ids).size !== ids.length)
       ctx.addIssue({

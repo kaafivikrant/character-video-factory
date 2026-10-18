@@ -15,3 +15,8 @@
 - Optional three-vrm 3.5.5 is exact-pinned and handled by a Vite virtual module so offline mannequin builds work. Package source/license: https://github.com/pixiv/three-vrm (MIT).
 - Minimum 1.4 s shot duration takes precedence over a new-speaker cut on very short lines; hold both camera subject and preset until an allowed boundary.
 - No bypass of sandbox restrictions was attempted. Inaccessible speech, listeners, browser and network are recorded as blockers; docs give normal terminal commands.
+
+## Timed script / Atlas update
+- User's exact 0–28 s caption schedule overrides inferred speech timing for the new spec; pitch-preserving FFmpeg atempo chains fit each line without dropping its words. 28–30 s is the requested website outro.
+- Original detailed procedural character selected with `model: builtin:atlas`; no unverified asset license or real-person likeness. Export GLB for reuse in 3D tools.
+- `.env` is loaded automatically by render/batch/doctor. Checked only whether key and voice variables exist; did not print credentials. Key exists; voice ID does not.

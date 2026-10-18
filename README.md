@@ -144,3 +144,18 @@ The stage exposes `load(timeline)` and `renderFrame(i)`. It uses no animation lo
 VideoToolbox is tested by an actual tiny encode; failure selects libx264 CRF 18. Captions are drawn on the composition canvas because the installed FFmpeg lacks both ASS and drawtext filters; ASS is still exported. The current implementation always uses that canvas-caption path.
 
 QA checks codecs, dimensions/fps/duration, loudness/peak/silence, caption metadata, nonblank decoded frames, foreground/background character difference, lip-track motion, sampled silent-mouth state, and five frame hashes in the same and a fresh browser. Caption appearance and expression/gesture quality still need contact-sheet inspection; metadata checks alone cannot prove visual synchronization. Frame determinism is expected within one machine/runtime, not guaranteed across GPU drivers.
+
+## Timed 30-second Children of Khan script
+
+`specs/khan_30s.yaml` preserves the supplied caption wording and all 15 speech intervals. It selects the original `builtin:atlas` character: sage bomber, layered face/eyes, sculpted hair, cargo pockets, detailed hands, watch and sneakers. A static reusable export is available at `assets/characters/atlas.glb`; the procedural adapter supplies live expressions and gestures.
+
+Every timed line supplies `start` and `end` in seconds. All lines must be timed, in order and non-overlapping. Normalized speech is pitch-preserving time-stretched to the exact slot; large changes are flagged in each timeline audio record for listening review. The final speech ends at 28 seconds and `www.childrenofkhan.com` occupies 28–30 seconds. Fixed timing overrides the earlier audio-derived-duration rule only for explicitly timed scripts.
+
+The render/batch/doctor commands now load `.env` automatically (Node 22 recommended). Both `FISH_API_KEY` and `FISH_VOICE_HERO` are needed for Fish output:
+
+```sh
+TTS_PROVIDER=fish pnpm render specs/khan_30s.yaml
+pnpm qa out/khan_30s
+```
+
+This render was attempted but blocked by the missing voice reference ID. The browser sandbox blocker also remains. The new character has passed geometry/rig/export checks but has not been visually inspected.

@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import { loadSpec } from "../spec/load";
 import { directLines } from "../timeline/emotion";
 import { synthesize } from "../tts/cache";
+import { fitAudio } from "../tts/fit";
 import { buildTimeline } from "../timeline/build";
 import { ass } from "../captions/ass";
 import { lipSync } from "../lipsync/rhubarb";
@@ -64,13 +65,17 @@ export async function render(
     mark("tts");
     const directed = directLines(spec.lines, spec.seed),
       audio = [];
-    for (const l of directed)
-      audio.push(
-        await synthesize(
-          l,
-          spec.characters.find((c) => c.id === l.speaker)!.voice,
-        ),
+    for (const l of directed) {
+      const generated = await synthesize(
+        l,
+        spec.characters.find((c) => c.id === l.speaker)!.voice,
       );
+      audio.push(
+        l.start !== undefined
+          ? await fitAudio(generated, l.end - l.start)
+          : generated,
+      );
+    }
     mark("timeline");
     const timeline: any = buildTimeline(spec, audio);
     timeline.models = Object.fromEntries(

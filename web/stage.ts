@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { MannequinAdapter } from "./character/mannequin";
+import { AtlasAdapter } from "./character/atlas";
 import { VRMAdapter } from "./character/vrmAdapter";
 import { mistyLake } from "./scenes/misty_lake_bridge";
 import { streetNight } from "./scenes/street_night";
@@ -69,8 +70,11 @@ async function load(t: any) {
   for (const config of t.spec.characters) {
     let adapter: any;
     try {
-      if (!t.models?.[config.id]) throw new Error("model missing");
-      adapter = new VRMAdapter(config);
+      if (config.model === "builtin:atlas") adapter = new AtlasAdapter(config);
+      else {
+        if (!t.models?.[config.id]) throw new Error("model missing");
+        adapter = new VRMAdapter(config);
+      }
       await adapter.load();
     } catch {
       adapter = new MannequinAdapter(config);

@@ -85,3 +85,13 @@ Run the README commands from a terminal with speech, localhost, browser and netw
 ### M7 execution evidence
 - `pnpm qa out/sample_hook`: FAIL artifacts (video.mp4/timeline.json missing); nonzero exit as intended.
 - Implemented ffprobe checks, loudness, silence, caption alignment, lip motion, blank frames, character difference, determinism and contact extraction. Real-video QA cannot execute before speech/browser blockers are removed.
+
+## Follow-up: detailed character and exact 30-second script
+- Added Atlas detailed character adapter and reusable 511,196-byte GLB; loader round-trip verified 97 exported visible meshes.
+- Added `specs/khan_30s.yaml`: all 15 supplied lines, exact time intervals, website outro at 28–30 s.
+- Added validated timed slots and cached, pitch-preserving speech duration fitting.
+- Build passes; 13 tests pass, including 900-frame timing, overlap rejection, real FFmpeg duration fitting and character mouth/blink controls.
+- `.env` now loads automatically. Key presence confirmed without displaying it; FISH_VOICE_HERO missing.
+- `TTS_PROVIDER=fish pnpm render specs/khan_30s.yaml`: FAIL `Fish reference_id missing`.
+- `pnpm qa out/khan_30s`: FAIL missing video/timeline. Browser smoke: localhost EPERM still present.
+- No finished new video or visual inspection claimed. Next: set authorized synthetic voice reference ID, run from normal Terminal, inspect contact sheet.

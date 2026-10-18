@@ -1,0 +1,191 @@
+id: khan_30s
+format: vertical
+fps: 30
+seed: 27
+scene: misty_lake_bridge
+music: null
+characters:
+  - id: hero
+    model: builtin:atlas
+    voice: ${FISH_VOICE_HERO}
+    position:
+      - 0
+      - 0
+      - 0
+    facing: camera
+    hoodie: "#52766b"
+    pants: "#273b46"
+lines:
+  - speaker: hero
+    start: 0
+    end: 1
+    text: my girlfriend found out
+    emotion: deadpan
+    intensity: 0.65
+    pitch: flat
+    gesture: hold_phone
+    shot: auto
+    pause_after: 0
+    tags: []
+  - speaker: hero
+    start: 1
+    end: 4
+    text: I still have a Chinese dating app on my phone
+    emotion: sad
+    intensity: 0.65
+    pitch: down
+    gesture: hold_phone
+    shot: auto
+    pause_after: 0
+    tags: []
+  - speaker: hero
+    start: 4
+    end: 6
+    text: and now she thinks I’m cheating
+    emotion: sad
+    intensity: 0.65
+    pitch: rise_end
+    gesture: palm_out
+    shot: auto
+    pause_after: 0
+    tags: []
+  - speaker: hero
+    start: 6
+    end: 7
+    text: I tried explaining that
+    emotion: deadpan
+    intensity: 0.65
+    pitch: flat
+    gesture: shrug
+    shot: auto
+    pause_after: 0
+    tags: []
+  - speaker: hero
+    start: 7
+    end: 9
+    text: I only use it to study the matchmaking algorithms
+    emotion: determined
+    intensity: 0.65
+    pitch: flat
+    gesture: hand_to_chest
+    shot: auto
+    pause_after: 0
+    tags: []
+  - speaker: hero
+    start: 9
+    end: 11
+    text: I’ve been creating fictional profiles
+    emotion: determined
+    intensity: 0.65
+    pitch: lively
+    gesture: open_arms
+    shot: auto
+    pause_after: 0
+    tags: []
+  - speaker: hero
+    start: 11
+    end: 13
+    text: for 60 year old businessman in Shanghai
+    emotion: deadpan
+    intensity: 0.65
+    pitch: up
+    gesture: hold_phone
+    shot: auto
+    pause_after: 0
+    tags: []
+  - speaker: hero
+    start: 13
+    end: 15
+    text: to see which personality rates
+    emotion: determined
+    intensity: 0.65
+    pitch: flat
+    gesture: point
+    shot: auto
+    pause_after: 0
+    tags: []
+  - speaker: hero
+    start: 15
+    end: 16
+    text: attracts the most attention
+    emotion: determined
+    intensity: 0.65
+    pitch: fall_end
+    gesture: hand_to_chest
+    shot: auto
+    pause_after: 0
+    tags: []
+  - speaker: hero
+    start: 16
+    end: 17
+    text: huh
+    emotion: surprised
+    intensity: 0.85
+    pitch: rise_end
+    gesture: step_back
+    shot: auto
+    pause_after: 0
+    tags: []
+  - speaker: hero
+    start: 17
+    end: 18
+    text: she asked why one of them was called
+    emotion: defensive
+    intensity: 0.65
+    pitch: flat
+    gesture: palm_out
+    shot: auto
+    pause_after: 0
+    tags: []
+  - speaker: hero
+    start: 18
+    end: 20
+    text: “handsome dragon 88”
+    emotion: embarrassed
+    intensity: 0.65
+    pitch: up
+    gesture: hand_to_neck
+    shot: auto
+    pause_after: 0
+    tags: []
+  - speaker: hero
+    start: 20
+    end: 22
+    text: brother that’s my highest performing account
+    emotion: defensive
+    intensity: 0.65
+    pitch: up
+    gesture: hold_phone
+    shot: auto
+    pause_after: 0
+    tags: []
+  - speaker: hero
+    start: 22
+    end: 24
+    text: I’m not deleting three months of research
+    emotion: determined
+    intensity: 0.65
+    pitch: fall_end
+    gesture: hand_to_chest
+    shot: auto
+    pause_after: 0
+    tags: []
+  - speaker: hero
+    start: 24
+    end: 28
+    text: you met me at a very Chinese time in my life
+    emotion: wistful
+    intensity: 0.65
+    pitch: down
+    gesture: look_away
+    shot: close
+    pause_after: 0
+    tags: []
+outro:
+  type: card
+  text: www.childrenofkhan.com
+  duration: 2
+  background: "#f4f0e8"
+captions:
+  style: bold_white
+  max_words_per_chunk: 5
