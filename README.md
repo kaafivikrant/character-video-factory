@@ -38,7 +38,7 @@ pnpm render specs/sample_hook.yaml
 
 - `FISH_API_KEY`: Fish API key.
 - `FISH_VOICE_HERO`, `FISH_VOICE_FRIEND`: authorized synthetic voice reference IDs (`reference_id` in the request). For this script, set `FISH_VOICE_HERO=d8a1340984ee4b63ad1ffae27a6a4339`.
-- `FISH_MODEL`: engine name sent in the `model` header, normally `s2-pro` (or `s2.1-pro`). Do not put a voice/model ID here.
+- `FISH_MODEL`: engine name sent in the `model` header, normally `s2-pro` (or `s2.1-pro`). Fish also documents `s2.1-pro-free` for the free developer tier. Do not put a voice/model ID here.
 - `TTS_PROVIDER`: `auto`, `fish`, or `mock`.
 - `auto` uses mock when key/reference is missing or Fish requests fail; every mock line is flagged.
 - `fish` fails instead of silently substituting mock.
@@ -47,6 +47,8 @@ pnpm render specs/sample_hook.yaml
 Fish integration follows the [official TTS endpoint](https://docs.fish.audio/api-reference/endpoint/openapi-v1/text-to-speech): JSON request, Authorization/model headers, per-line reference ID, tagged text and prosody. WAV is requested at 44.1 kHz and converted locally to 48 kHz mono. Pitch uses inline descriptions, never a numeric pitch parameter. Three retries follow the initial attempt. No voice model is selected or cloned automatically.
 
 For a strict real-voice render, use `TTS_PROVIDER=fish` in `.env`. With `auto`, a Fish HTTP/network failure may fall back to mock speech; inspect `out/<id>/report.json` and make sure `MOCK` is `false` and every entry in `providers` is `fish` before using the video.
+
+Fish HTTP 402 means the account/key/model combination is not currently authorized for paid synthesis or lacks API credits. Check the response detail printed by the CLI and the Fish account's API billing/credit balance. If the account is eligible for the free developer tier, try `FISH_MODEL=s2.1-pro-free`; it is a distinct model name, not a voice ID.
 
 ### Rhubarb
 

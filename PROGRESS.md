@@ -104,3 +104,9 @@ Run the README commands from a terminal with speech, localhost, browser and netw
 - Improved the built-in character face and corrected close-camera distance/FOV. `pnpm build` passes after these renderer edits, but this environment cannot bind localhost (`listen EPERM`) so the updated character could not be rendered or visually inspected here.
 - Current fresh attempt failed at capture with `listen EPERM: operation not permitted 127.0.0.1`; do not treat existing `out/khan_30s/video.mp4` as an updated or verified render.
 - Morning TODO: run the strict Fish render and renderer from a normal macOS terminal with network and localhost access, then inspect contact.png and confirm `MOCK:false`.
+
+## Follow-up: Fish HTTP 402
+- User's local render now reaches Fish and returns HTTP 402; this establishes that network/DNS and bearer auth reached the endpoint, but does not by itself tell whether the key is invalid for API use, the account lacks API credits, or the selected hosted model requires plan access.
+- Official Fish docs list `s2.1-pro-free` for the free developer tier; paid model names include `s2-pro` and `s2.1-pro`. The voice model ID remains a separate `reference_id`.
+- Fish client now prints a bounded server error detail and immediately stops retrying non-retryable client responses such as 402. README documents billing/credit checks and the optional free-tier model.
+- Next: rerun with `FISH_MODEL=s2.1-pro-free` only if the Fish account is eligible; if 402 persists, check the Fish API dashboard for API credit/billing and verify the key is an API key. No project-side change can grant account credits or plan access.

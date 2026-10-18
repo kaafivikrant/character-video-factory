@@ -1,4 +1,26 @@
 import { writeFileSync } from "node:fs";
+
+class FishHttpError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+function describeFishError(body: string) {
+  try {
+    const parsed = JSON.parse(body);
+    const detail = [parsed.message, parsed.reason, parsed.error]
+      .find((value) => typeof value === "string" && value.trim())
+      ?.trim();
+    return detail || "no error details returned";
+  } catch {
+    return body.trim().slice(0, 300) || "no error details returned";
+  }
+}
+
 export async function fish(
   text: string,
   voice: string,
@@ -31,12 +53,19 @@ export async function fish(
         }),
         signal: AbortSignal.timeout(60000),
       });
-      if (!response.ok) throw new Error(`Fish HTTP ${response.status}`);
+      if (!response.ok) {
+        const detail = describeFishError(await response.text());
+        throw new FishHttpError(response.status, `Fish HTTP ${response.status}: ${detail}`);
+      }
       const data = Buffer.from(await response.arrayBuffer());
       if (data.length < 44) throw new Error("Fish returned empty audio");
       writeFileSync(path, data);
       return;
     } catch (e) {
+      // Client errors such as 401/402/404 are configuration/account issues;
+      // repeating the same request only adds delay and cost.
+      if (e instanceof FishHttpError && e.status < 500 && e.status !== 429)
+        throw e;
       if (attempt === 3) {
         const cause = (e as any)?.cause;
         const code = cause?.code ?? (e as any)?.code;
