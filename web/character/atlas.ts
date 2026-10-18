@@ -18,6 +18,12 @@ export class AtlasAdapter extends MannequinAdapter {
         o.material.roughness = 0.78;
       }
     });
+    this.nose.visible = false;
+    const baseHair = head.children.find(
+      (o: any) => o.isMesh && o.geometry?.parameters?.radius === 0.227,
+    );
+    if (baseHair) baseHair.visible = false;
+    this.brows.forEach((b: any) => (b.visible = false));
     const ellipsoid = (
       parent: any,
       color: string,
@@ -33,34 +39,49 @@ export class AtlasAdapter extends MannequinAdapter {
       m.scale.fromArray(scale);
       return m;
     };
-    ellipsoid(head, skin, [0, -0.05, 0.015], [0.198, 0.181, 0.182]);
-    ellipsoid(head, skin, [0, -0.016, 0.19], [0.035, 0.047, 0.037]);
+    ellipsoid(head, skin, [0, -0.035, 0.015], [0.19, 0.17, 0.175]);
+    ellipsoid(head, skin, [0, -0.025, 0.188], [0.022, 0.03, 0.018]);
     for (const side of [-1, 1]) {
       ellipsoid(
         head,
         "#a5725c",
-        [side * 0.216, -0.003, 0.017],
-        [0.024, 0.041, 0.023],
+        [side * 0.205, -0.003, 0.017],
+        [0.018, 0.031, 0.018],
       );
       ellipsoid(
         head,
         skin,
-        [side * 0.129, -0.047, 0.155],
-        [0.059, 0.052, 0.029],
+        [side * 0.112, -0.075, 0.132],
+        [0.072, 0.065, 0.055],
       );
     }
-    // Swept, individually modeled hair locks, with a tapered back silhouette.
-    for (let i = 0; i < 9; i++) {
-      const m = ellipsoid(
-        head,
-        i % 3 ? "#273034" : "#354044",
-        [(i - 4) * 0.041, 0.183 + Math.sin(i * 0.45) * 0.021, 0.06],
-        [0.058, 0.076, 0.119],
-      );
-      m.rotation.z = -0.32;
-      m.rotation.x = -0.22;
-    }
-    ellipsoid(head, hair, [0, 0.05, -0.12], [0.207, 0.172, 0.092]);
+    // One smooth cap and swept forelock replace the segmented ball-shaped hair.
+    const cap = this.part(
+      new THREE.SphereGeometry(
+        0.215,
+        28,
+        20,
+        0,
+        Math.PI * 2,
+        0,
+        Math.PI * 0.585,
+      ),
+      hair,
+      head,
+      0,
+      0.045,
+      -0.015,
+    );
+    cap.scale.set(1, 0.94, 1.02);
+    const lock = ellipsoid(
+      head,
+      "#303a3c",
+      [-0.045, 0.19, 0.095],
+      [0.092, 0.043, 0.105],
+    );
+    lock.rotation.z = -0.28;
+    lock.rotation.x = -0.12;
+    ellipsoid(head, "#1c2427", [0, 0.025, -0.12], [0.195, 0.15, 0.078]);
     // White sclera, colored irises, pupils and catchlights move/blink as groups.
     for (let i = 0; i < 2; i++) {
       this.eyes[i].visible = false;
@@ -73,12 +94,19 @@ export class AtlasAdapter extends MannequinAdapter {
       ellipsoid(eye, "#152326", [0, 0, 0.015], [0.008, 0.013, 0.004]);
       ellipsoid(eye, "#ffffff", [-0.005, 0.007, 0.019], [0.003, 0.004, 0.002]);
       this.eyes[i] = eye;
-      this.brows[i].scale.set(1.16, 1.3, 1);
-      this.brows[i].position.z = 0.199;
+      const brow = ellipsoid(
+        head,
+        "#333331",
+        [x, 0.088, 0.18],
+        [0.047, 0.011, 0.009],
+      );
+      brow.rotation.z = i ? 0.08 : -0.08;
+      this.brows[i] = brow;
     }
     // Mouth remains the animated viseme surface, set in a subtle lip rim.
     this.mouth.position.z = 0.2;
-    ellipsoid(head, "#945e50", [0, -0.086, 0.192], [0.047, 0.014, 0.009]);
+    this.mouth.scale.set(0.78, 0.55, 0.8);
+    ellipsoid(head, "#945e50", [0, -0.086, 0.192], [0.033, 0.008, 0.006]);
     // Bomber jacket: stand collar, ribbed hem, center opening, zipper and pockets.
     const collar = this.part(
       new THREE.TorusGeometry(0.115, 0.027, 8, 24),

@@ -95,3 +95,12 @@ Run the README commands from a terminal with speech, localhost, browser and netw
 - `TTS_PROVIDER=fish pnpm render specs/khan_30s.yaml`: FAIL `Fish reference_id missing`.
 - `pnpm qa out/khan_30s`: FAIL missing video/timeline. Browser smoke: localhost EPERM still present.
 - No finished new video or visual inspection claimed. Next: set authorized synthetic voice reference ID, run from normal Terminal, inspect contact sheet.
+
+## Follow-up: Fish ID diagnosis and character framing
+- Confirmed `.env` has a Fish API key and `FISH_VOICE_HERO` set to the supplied ID; its `FISH_MODEL` is `s2-pro`. Key contents were not printed.
+- Fish request mapping: `FISH_MODEL` is the engine header (`s2-pro`); the supplied long ID is `reference_id` and belongs in `FISH_VOICE_HERO`.
+- The prior MP4's report/log showed mock provider output. `auto` can fall back to mock after Fish errors, which made an output appear to work without proving the Fish model configuration was valid.
+- Added provider/fallback details to the running report before later render stages, expanded sanitized network error diagnostics, and clarified setup in README.
+- Improved the built-in character face and corrected close-camera distance/FOV. `pnpm build` passes after these renderer edits, but this environment cannot bind localhost (`listen EPERM`) so the updated character could not be rendered or visually inspected here.
+- Current fresh attempt failed at capture with `listen EPERM: operation not permitted 127.0.0.1`; do not treat existing `out/khan_30s/video.mp4` as an updated or verified render.
+- Morning TODO: run the strict Fish render and renderer from a normal macOS terminal with network and localhost access, then inspect contact.png and confirm `MOCK:false`.

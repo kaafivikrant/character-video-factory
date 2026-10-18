@@ -61,3 +61,10 @@ The final attempted sample QA is attached locally at `out/sample_hook/report.jso
 ## Follow-up delivery: Atlas + timed Khan script
 
 New source builds and 13 tests pass. The exact timing spec is `specs/khan_30s.yaml`; original detailed character export is `assets/characters/atlas.glb`. Render was attempted and failed with `Fish reference_id missing`. Key is present in .env, but FISH_VOICE_HERO is missing. Browser sandbox restrictions remain. No 30-second MP4 exists yet; the failed QA report is `out/khan_30s/report.json`. No new character visual inspection could be performed.
+
+## Follow-up: Khan render debug
+
+- `.env` currently contains a key, `FISH_MODEL=s2-pro`, and `FISH_VOICE_HERO` equal to the supplied ID. The key was never printed. Fish uses the engine name in the `model` request header and the ID as `reference_id`; putting the ID in `FISH_MODEL` is the configuration error.
+- The existing Khan MP4 was produced using mock TTS (`MOCK:true` in its previous report). With `TTS_PROVIDER=auto`, Fish errors can trigger mock fallback, so a file appearing after a render does not prove the requested voice worked. README now documents strict mode and provider validation; render reports now persist provider/fallback data before rendering.
+- Visual adjustments made to Atlas/mannequin geometry and close-shot framing. `pnpm build` passed. A fresh mock render advanced through TTS, timeline, lip sync, and build, then failed at capture because this environment forbids binding `127.0.0.1` (`EPERM`). The previous MP4 is therefore stale; new character visuals/contact sheet remain unverified here.
+- Next run in a normal macOS terminal: set `TTS_PROVIDER=fish` in `.env`, keep `FISH_MODEL=s2-pro` and the voice ID under `FISH_VOICE_HERO`, then run `pnpm render specs/khan_30s.yaml`. Inspect `out/khan_30s/report.json` for `MOCK:false` and all `providers` equal `fish`, then review `contact.png`.

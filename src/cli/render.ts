@@ -76,6 +76,19 @@ export async function render(
           : generated,
       );
     }
+    // Persist provider selection before later stages can fail. This prevents a
+    // mock-backed render from looking like a successful real Fish render.
+    json(`${dir}/report.json`, {
+      id: spec.id,
+      specHash,
+      status: "running",
+      passed: false,
+      MOCK: audio.some((a) => a.MOCK),
+      providers: audio.map((a) => a.provider),
+      ttsFallbacks: audio
+        .map((a, i) => a.fallback ? `line ${i + 1}: ${a.fallback}` : null)
+        .filter(Boolean),
+    });
     mark("timeline");
     const timeline: any = buildTimeline(spec, audio);
     timeline.models = Object.fromEntries(

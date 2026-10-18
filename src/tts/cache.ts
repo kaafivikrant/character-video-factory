@@ -7,6 +7,10 @@ export async function synthesize(line: any, voice: string) {
   const requested = process.env.TTS_PROVIDER || "auto";
   if (!["auto", "fish", "mock"].includes(requested))
     throw new Error("TTS_PROVIDER must be auto, fish or mock");
+  if (requested === "auto" && process.env.FISH_API_KEY && !voice)
+    throw new Error(
+      "FISH_API_KEY is set but this character has no voice reference ID. Put the Fish voice ID in FISH_VOICE_HERO; FISH_MODEL selects s2-pro or s2.1-pro.",
+    );
   let provider =
     requested === "mock" ||
     (requested === "auto" && (!process.env.FISH_API_KEY || !voice))

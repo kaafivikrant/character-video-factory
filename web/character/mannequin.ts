@@ -6,6 +6,7 @@ export class MannequinAdapter {
   eyes: any[] = [];
   brows: any[] = [];
   phone: any;
+  nose: any;
   expressions: any = {};
   neck: any;
   constructor(public config: any) {
@@ -69,20 +70,36 @@ export class MannequinAdapter {
     this.neck = this.joint("neck", torso, [0, 0.52, 0]);
     this.part(new THREE.CylinderGeometry(0.095, 0.1, 0.12, 8), skin, this.neck);
     const head = this.joint("head", this.neck, [0, 0.18, 0]);
-    this.part(new THREE.SphereGeometry(0.22, 9, 7), skin, head).scale.set(
+    this.part(new THREE.SphereGeometry(0.22, 24, 16), skin, head).scale.set(
       1,
       1.13,
       0.91,
     );
     this.part(
-      new THREE.SphereGeometry(0.227, 8, 5, 0, Math.PI * 2, 0, Math.PI * 0.53),
+      new THREE.SphereGeometry(
+        0.227,
+        20,
+        12,
+        0,
+        Math.PI * 2,
+        0,
+        Math.PI * 0.53,
+      ),
       hair,
       head,
       0,
       0.045,
       0,
     );
-    this.box(0.085, 0.04, 0.05, skin, head, 0, -0.015, 0.195);
+    this.nose = this.part(
+      new THREE.SphereGeometry(0.045, 12, 8),
+      skin,
+      head,
+      0,
+      -0.025,
+      0.203,
+    );
+    this.nose.scale.set(0.66, 0.72, 0.75);
     for (const x of [-0.085, 0.085]) {
       this.part(
         new THREE.SphereGeometry(0.045, 6, 5),

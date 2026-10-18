@@ -26,7 +26,7 @@ async function load(t: any) {
   fallbacks = [];
   characters = [];
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(36, t.size[0] / t.size[1], 0.05, 150);
+  camera = new THREE.PerspectiveCamera(27, t.size[0] / t.size[1], 0.05, 150);
   renderer?.dispose();
   renderer = new THREE.WebGLRenderer({
     antialias: true,
@@ -122,7 +122,7 @@ function renderFrame(
   );
   const aspect = w / h;
   const distance =
-    (shot.shot === "full" ? 3.7 : shot.shot === "close" ? 1.65 : 2.6) *
+    (shot.shot === "full" ? 5.4 : shot.shot === "close" ? 3.0 : 2.6) *
     (aspect < 0.8 ? 1.12 : 1);
   const push =
     1 -

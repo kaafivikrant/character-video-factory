@@ -37,7 +37,26 @@ export async function fish(
       writeFileSync(path, data);
       return;
     } catch (e) {
-      if (attempt === 3) throw e;
+      if (attempt === 3) {
+        const cause = (e as any)?.cause;
+        const code = cause?.code ?? (e as any)?.code;
+        const host = cause?.hostname ?? (e as any)?.hostname;
+        if ([
+          "ENOTFOUND",
+          "EAI_AGAIN",
+          "ECONNREFUSED",
+          "EHOSTUNREACH",
+          "ENETUNREACH",
+          "ECONNRESET",
+          "ETIMEDOUT",
+        ].includes(code))
+          throw new Error(
+            `Fish Audio network request failed (${code}${host ? `: ${host}` : ""})`,
+          );
+        if ((e as Error)?.name === "TimeoutError")
+          throw new Error("Fish Audio request timed out after 60 seconds");
+        throw new Error(`Fish Audio request failed: ${(e as Error).message}`);
+      }
       await new Promise((r) => setTimeout(r, 1000 * 2 ** attempt));
     }
   }
