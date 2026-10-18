@@ -28,3 +28,9 @@
 - Four YAML fixtures created; all validate.
 - `pnpm test`: 2 tests pass, including readable path-specific errors for unknown speaker and path traversal.
 - Fixed environment interpolation to happen after YAML parsing, preventing empty voices becoming YAML null.
+
+### M2 implementation / BLOCKED acceptance
+- Fish JSON client, retries, provider policy, content hash cache, macOS say/afconvert, 48k mono trim/loudnorm implemented.
+- `TTS_PROVIDER=mock node --import tsx tools/tts-smoke.ts`: FAIL, `TTS produced no usable speech`.
+- Evidence: macOS say emitted `sandbox_extension_issue_file failed ... Operation not permitted`; AIFF contains no audio, normalized WAV is 78 bytes, ffprobe duration N/A. Invalid cache results are rejected.
+- Fish unavailable due network and missing voice reference. No fake speech substituted.
