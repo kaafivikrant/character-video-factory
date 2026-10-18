@@ -1,0 +1,24 @@
+{
+  "name": "character-video-factory",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "doctor": "node --import tsx src/cli/doctor.ts",
+    "build": "tsc --noEmit && vite build web --outDir ../dist",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "render": "node --import tsx src/cli/render.ts",
+    "batch": "node --import tsx src/cli/batch.ts",
+    "qa": "node --import tsx src/cli/qa.ts"
+  },
+  "dependencies": {
+    "three": "0.182.0",
+    "vite": "6.4.1",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "yaml": "2.7.1",
+    "zod": "3.24.4",
+    "playwright": "1.55.0"
+  },
+  "devDependencies": {}
+}

@@ -1,0 +1,4 @@
+const fs=require('fs'),path=require('path'),cp=require('child_process');
+const root='/Users/vik/.npm/_cacache';
+function walk(p){return fs.readdirSync(p,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(p+'/'+e.name):[p+'/'+e.name]);}
+for(const n of ['tsx','get-tsconfig','resolve-pkg-maps']){let found=false;for(const f of walk(root+'/index-v5')){for(const line of fs.readFileSync(f,'utf8').split('\n')){try{const j=JSON.parse(line.slice(line.indexOf('\t')+1));if(j.key.includes('/'+n+'/-/')&&j.integrity){const hex=Buffer.from(j.integrity.split('-')[1],'base64').toString('hex'),src=root+'/content-v2/sha512/'+hex.slice(0,2)+'/'+hex.slice(2,4)+'/'+hex.slice(4);if(fs.existsSync(src)){fs.mkdirSync('node_modules/'+n,{recursive:true});cp.execFileSync('tar',['-xzf',src,'-C','node_modules/'+n,'--strip-components=1']);console.log('restored',n);found=true;break;}}}catch{}}if(found)break;}}
