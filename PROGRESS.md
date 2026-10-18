@@ -34,3 +34,7 @@
 - `TTS_PROVIDER=mock node --import tsx tools/tts-smoke.ts`: FAIL, `TTS produced no usable speech`.
 - Evidence: macOS say emitted `sandbox_extension_issue_file failed ... Operation not permitted`; AIFF contains no audio, normalized WAV is 78 bytes, ffprobe duration N/A. Invalid cache results are rejected.
 - Fish unavailable due network and missing voice reference. No fake speech substituted.
+
+### M3 evidence
+- `pnpm test`: 5/5 pass (schema, tag stacking/pitch variation, caption chunks, measured timeline math).
+- `node --import tsx tools/timeline-smoke.ts`: TEST ONLY timeline and ASS generated using fixture durations; live audio acceptance remains dependent on M2.
