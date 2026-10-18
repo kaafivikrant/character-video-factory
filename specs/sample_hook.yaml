@@ -1,0 +1,125 @@
+id: sample_hook
+format: vertical
+fps: 30
+seed: 7
+scene: misty_lake_bridge
+music: null
+characters:
+  - id: hero
+    model: assets/characters/hero.vrm
+    voice: ${FISH_VOICE_HERO}
+    position:
+      - 0
+      - 0
+      - 0
+    facing: camera
+lines:
+  - speaker: hero
+    text: my girlfriend found out
+    emotion: deadpan
+    intensity: 0.5
+    pitch: flat
+    shot: auto
+    speed: 1
+    gesture: hold_phone
+    pause_after: 0.15
+    tags: []
+  - speaker: hero
+    text: I still have a Chinese dating app on my phone
+    emotion: sad
+    intensity: 0.6
+    pitch: down
+    shot: auto
+    tags: []
+  - speaker: hero
+    text: and now she thinks I'm cheating
+    emotion: sad
+    intensity: 0.7
+    pitch: rise_end
+    shot: auto
+    tags: []
+  - speaker: hero
+    text: I tried explaining that
+    emotion: deadpan
+    intensity: 0.5
+    pitch: flat
+    shot: auto
+    tags: []
+  - speaker: hero
+    text: I only use it to study the matchmaking algorithms
+    emotion: determined
+    intensity: 0.5
+    pitch: flat
+    shot: auto
+    tags: []
+  - speaker: hero
+    text: I've been creating fictional profiles
+    emotion: determined
+    intensity: 0.5
+    pitch: lively
+    shot: auto
+    tags: []
+  - speaker: hero
+    text: for 60 year old businessman in Shanghai
+    emotion: deadpan
+    intensity: 0.5
+    pitch: up
+    shot: auto
+    tags: []
+  - speaker: hero
+    text: to see which personality rates attracts the most attention
+    emotion: determined
+    intensity: 0.6
+    pitch: fall_end
+    shot: auto
+    tags: []
+  - speaker: hero
+    text: huh
+    emotion: surprised
+    intensity: 0.8
+    pitch: rise_end
+    shot: auto
+    tags: []
+  - speaker: hero
+    text: she asked why one of them was called
+    emotion: defensive
+    intensity: 0.4
+    pitch: flat
+    shot: auto
+    tags: []
+  - speaker: hero
+    text: '"handsome dragon 88"'
+    emotion: embarrassed
+    intensity: 0.7
+    pitch: up
+    shot: auto
+    tags: []
+  - speaker: hero
+    text: brother that's my highest performing account
+    emotion: defensive
+    intensity: 0.8
+    pitch: up
+    shot: auto
+    tags: []
+  - speaker: hero
+    text: I'm not deleting three months of research
+    emotion: determined
+    intensity: 0.8
+    pitch: fall_end
+    shot: auto
+    tags: []
+  - speaker: hero
+    text: you met me at a very Chinese time in my life
+    emotion: wistful
+    intensity: 0.8
+    pitch: down
+    shot: close
+    tags: []
+outro:
+  type: card
+  text: your-site.com
+  duration: 2
+  background: "#f4f4f4"
+captions:
+  style: bold_white
+  max_words_per_chunk: 5

@@ -1,0 +1,30 @@
+id: landscape
+format: landscape
+fps: 30
+seed: 7
+scene: street_night
+music: null
+characters:
+  - id: hero
+    model: assets/characters/hero.vrm
+    voice: ${FISH_VOICE_HERO}
+    position:
+      - 0
+      - 0
+      - 0
+    facing: camera
+lines:
+  - speaker: hero
+    text: The city is quieter after the rain.
+    emotion: wistful
+  - speaker: hero
+    text: Sometimes that is all the invitation you need.
+    emotion: happy
+outro:
+  type: card
+  text: your-site.com
+  duration: 2
+  background: "#f4f4f4"
+captions:
+  style: bold_white
+  max_words_per_chunk: 5

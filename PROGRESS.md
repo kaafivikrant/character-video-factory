@@ -23,3 +23,8 @@
 - `pnpm run doctor`: clear 11-row table; Node, pnpm, FFmpeg, VideoToolbox, ffprobe, say pass. libass, Rhubarb, expected Chromium revision, Fish environment/network fail with fallbacks listed.
 - pnpm 10 has its own `doctor` command; use `pnpm run doctor` to select this project's script.
 - tsx CLI IPC is forbidden by sandbox; `node --import tsx` runs successfully.
+
+### M1 evidence
+- Four YAML fixtures created; all validate.
+- `pnpm test`: 2 tests pass, including readable path-specific errors for unknown speaker and path traversal.
+- Fixed environment interpolation to happen after YAML parsing, preventing empty voices becoming YAML null.

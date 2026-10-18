@@ -1,0 +1,32 @@
+id: short_8s
+format: vertical
+fps: 30
+seed: 7
+scene: misty_lake_bridge
+music: null
+characters:
+  - id: hero
+    model: assets/characters/hero.vrm
+    voice: ${FISH_VOICE_HERO}
+    position:
+      - 0
+      - 0
+      - 0
+    facing: camera
+lines:
+  - speaker: hero
+    text: Every great adventure starts with one small step.
+    emotion: happy
+    shot: mid
+  - speaker: hero
+    text: Take yours today.
+    emotion: determined
+    shot: close
+outro:
+  type: card
+  text: START SOMETHING
+  duration: 1
+  background: "#f4f4f4"
+captions:
+  style: bold_white
+  max_words_per_chunk: 5

@@ -1,0 +1,42 @@
+id: dialogue
+format: classic
+fps: 30
+seed: 7
+scene: street_night
+music: null
+characters:
+  - id: hero
+    model: assets/characters/hero.vrm
+    voice: ${FISH_VOICE_HERO}
+    position:
+      - -0.65
+      - 0
+      - 0
+    facing: friend
+  - id: friend
+    model: assets/characters/friend.vrm
+    voice: ${FISH_VOICE_FRIEND}
+    position:
+      - 0.65
+      - 0
+      - 0
+    facing: hero
+    hoodie: "#568a91"
+lines:
+  - speaker: hero
+    text: Did you bring the map?
+    emotion: neutral
+  - speaker: friend
+    text: I thought you had it.
+    emotion: surprised
+  - speaker: hero
+    text: Then this is officially an adventure.
+    emotion: excited
+outro:
+  type: card
+  text: your-site.com
+  duration: 2
+  background: "#f4f4f4"
+captions:
+  style: bold_white
+  max_words_per_chunk: 5
