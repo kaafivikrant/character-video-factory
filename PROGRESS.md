@@ -44,3 +44,11 @@
 - Energy/Rhubarb tracks, bounded spring smoothing, gesture poses, expression blending, seeded blinking implemented.
 - `pnpm test`: 7/7 pass, including viseme bounds and attack/release.
 - Chromium launch FAIL: sandbox SIGABRT before page, process cleanup reports EPERM. No rendered frames exist; visual acceptance and GPU proof remain BLOCKED.
+
+### M6 execution evidence
+- `pnpm render specs/sample_hook.yaml`: exits 1 at TTS with `TTS produced no usable speech`. report.json records failedStage=tts. No MP4 falsely claimed.
+- Implemented audio delay/mix, optional sidechain ducking, -14 LUFS normalization, H.264/AAC faststart mux and renderer orchestration.
+
+### M7 execution evidence
+- `pnpm qa out/sample_hook`: FAIL artifacts (video.mp4/timeline.json missing); nonzero exit as intended.
+- Implemented ffprobe checks, loudness, silence, caption alignment, lip motion, blank frames, character difference, determinism and contact extraction. Real-video QA cannot execute before speech/browser blockers are removed.

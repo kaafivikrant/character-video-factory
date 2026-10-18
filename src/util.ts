@@ -1,5 +1,5 @@
 import {createHash} from 'node:crypto';import {execFile} from 'node:child_process';import {promisify} from 'node:util';import {mkdirSync,writeFileSync,readFileSync,existsSync,realpathSync} from 'node:fs';import {resolve,relative,dirname,isAbsolute} from 'node:path';
-const exec=promisify(execFile);export async function run(file:string,args:string[],options:any={}){try{return await exec(file,args,{maxBuffer:32*1024*1024,timeout:120000,...options});}catch(e){throw new Error(`${file} failed: ${(e.stderr||e.message).toString().slice(-2000)}`);}}
+const exec=promisify(execFile);export async function run(file:string,args:string[],options:any={}){try{const r=await exec(file,args,{maxBuffer:32*1024*1024,timeout:120000,encoding:"utf8",...options});return {stdout:r.stdout.toString(),stderr:r.stderr.toString()};}catch(e){throw new Error(`${file} failed: ${(e.stderr||e.message).toString().slice(-2000)}`);}}
 export const hash=(v:any)=>createHash('sha256').update(typeof v==='string'?v:JSON.stringify(v)).digest('hex');
 export function json(path:string,v:any){mkdirSync(dirname(path),{recursive:true});writeFileSync(path,JSON.stringify(v,null,2));}
 export const readJSON=(p:string)=>JSON.parse(readFileSync(p,'utf8'));
