@@ -72,3 +72,17 @@ New source builds and 13 tests pass. The exact timing spec is `specs/khan_30s.ya
 ## Follow-up: Fish HTTP 402
 
 The user's local machine reached the Fish endpoint but received HTTP 402 with `FISH_MODEL=s2-pro`. The endpoint's current documentation identifies `s2.1-pro-free` as the free developer tier; `s2-pro` and `s2.1-pro` are other hosted models. A 402 indicates an account/key/model entitlement or API-credit issue, which the local project cannot resolve. The client now reports Fish's response message and avoids repeating non-retryable 4xx requests. See README for the account checks and optional free-tier trial.
+
+## Follow-up: first real render QA
+
+The user's local M1 run later completed TTS with Fish for all 15 lines, rendered on ANGLE Metal, produced an exactly 30.0-second H.264/AAC file, and passed every QA check except integrated loudness (−15.15 LUFS; target −15 to −13). No mock audio was used. Contact sheet review found clipped head framing and crude cheek/mouth proportions. Changes now add gain/headroom management to the mux, widen/reframe the camera, smooth/hide overlapping base facial geometry, reduce cheek/nose size, and animate a rounded mouth aperture. `pnpm build` passes. The current runtime cannot capture because localhost binding returns EPERM, so updated video/QA and the visual changes still need a local rerun.
+
+## Follow-up: supplied Cactus Boy and fresh render folders
+
+The Khan spec now uses the supplied `assets/characters/cactus_boy.vrm` (VRM metadata says Polygonal Mind, CC0), with `@pixiv/three-vrm` 3.5.5 pinned as a required dependency. Each run writes to a new `out/khan_30s/run-<timestamp>/` folder with `log.txt`; QA on the parent selects the newest run. A direct mux experiment reached −14.2 LUFS / −1.5 dBTP. The current sandbox cannot install the VRM loader from the registry or run Chromium capture due network/local-listener restrictions. No fresh MP4 or visual inspection is claimed. On the user's connected Mac, run `pnpm install`, then `pnpm render specs/khan_30s.yaml`, and inspect the new run's contact sheet and QA report.
+
+## Follow-up: Cool Banana and speech pacing
+
+Added the user-supplied Cool Banana VRM (embedded metadata: Polygonal Mind, CC0) and a parallel 30-second Khan spec, retaining Cactus Boy as the original. The prior successful Fish output shows the actual bug: its per-line atempo factors ranged 0.34×–2.63× because approximate caption timestamps were treated as exact speech durations. The fix sets a 30-second target and applies one shared tempo ratio to all lines, with short uniform pauses; subtitles are timed from the resulting audio. `pnpm test` passes 14/14 and `pnpm build` passes. All 15 Fish lines were already cached, so verification required no new API calls. The corrected line tempo is uniformly 1.2139×; `voice-preview.wav` measures 30.000 s, −14.4 LUFS, and −1.5 dBTP. A full rerender stopped at capture because this sandbox denies localhost binding (`listen EPERM`). The local Whisper command cannot start because its configured Python 3.9 interpreter is missing, and I do not have an audio playback input to make a subjective listening claim.
+
+Khan now sends one stable, conversational style brief plus one performance cue per line in a single Fish inline tag; numeric speed is fixed at 1.0. Fish sampling temperature is 0.55 (the API docs say lower values are more consistent), and sampling values are included in cache keys. No new TTS call was made, so listen to the next generated version before further prompt tuning.

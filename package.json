@@ -12,7 +12,8 @@
     "qa": "node --import tsx src/cli/qa.ts",
     "format": "node node_modules/prettier/bin/prettier.cjs --write \"src/**/*.ts\" \"web/**/*.ts\" \"tests/**/*.ts\"",
     "test:media": "node --import tsx tools/media-smoke.ts",
-    "test:tts": "node --import tsx tools/tts-smoke.ts"
+    "test:tts": "node --import tsx tools/tts-smoke.ts",
+    "test:voices": "node --env-file-if-exists=.env --import tsx tools/test-fish-voices.ts"
   },
   "dependencies": {
     "three": "0.182.0",
@@ -22,13 +23,11 @@
     "yaml": "2.7.1",
     "zod": "3.24.4",
     "playwright": "1.55.0",
-    "mediabunny": "1.50.3"
+    "mediabunny": "1.50.3",
+    "@pixiv/three-vrm": "3.5.5"
   },
   "devDependencies": {
     "@types/node": "24.5.0",
     "prettier": "3.8.1"
-  },
-  "optionalDependencies": {
-    "@pixiv/three-vrm": "3.5.5"
   }
 }

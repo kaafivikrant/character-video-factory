@@ -27,6 +27,8 @@ export async function fish(
   speed: number,
   normalize: boolean,
   path: string,
+  temperature = 0.55,
+  topP = 0.7,
 ) {
   if (!process.env.FISH_API_KEY)
     throw new Error("Fish key not in runtime environment");
@@ -48,14 +50,22 @@ export async function fish(
           prosody: { speed, volume: 0 },
           latency: "normal",
           normalize,
-          temperature: 0.7,
-          top_p: 0.7,
+          temperature,
+          top_p: topP,
         }),
         signal: AbortSignal.timeout(60000),
       });
       if (!response.ok) {
         const detail = describeFishError(await response.text());
-        throw new FishHttpError(response.status, `Fish HTTP ${response.status}: ${detail}`);
+        if (response.status === 400 && /reference not found/i.test(detail))
+          throw new FishHttpError(
+            response.status,
+            `Fish could not resolve the supplied reference_id. It must be a trained TTS voice model ID accessible to this API key; FISH_MODEL (${process.env.FISH_MODEL || "s2-pro"}) selects the synthesis engine, not the voice. Run pnpm test:voices to check both configured IDs.`,
+          );
+        throw new FishHttpError(
+          response.status,
+          `Fish HTTP ${response.status}: ${detail}`,
+        );
       }
       const data = Buffer.from(await response.arrayBuffer());
       if (data.length < 44) throw new Error("Fish returned empty audio");
@@ -70,15 +80,17 @@ export async function fish(
         const cause = (e as any)?.cause;
         const code = cause?.code ?? (e as any)?.code;
         const host = cause?.hostname ?? (e as any)?.hostname;
-        if ([
-          "ENOTFOUND",
-          "EAI_AGAIN",
-          "ECONNREFUSED",
-          "EHOSTUNREACH",
-          "ENETUNREACH",
-          "ECONNRESET",
-          "ETIMEDOUT",
-        ].includes(code))
+        if (
+          [
+            "ENOTFOUND",
+            "EAI_AGAIN",
+            "ECONNREFUSED",
+            "EHOSTUNREACH",
+            "ENETUNREACH",
+            "ECONNRESET",
+            "ETIMEDOUT",
+          ].includes(code)
+        )
           throw new Error(
             `Fish Audio network request failed (${code}${host ? `: ${host}` : ""})`,
           );

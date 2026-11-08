@@ -41,6 +41,9 @@ export const specSchema = z
     format: z.enum(["vertical", "landscape", "classic"]).default("vertical"),
     fps: z.number().int().min(12).max(60).default(30),
     seed: z.number().int().default(7),
+    target_duration: z.number().positive().max(600).optional(),
+    voice_prompt: z.string().trim().min(1).max(500).optional(),
+    staging: z.enum(["solo", "conversation"]).default("solo"),
     scene: z
       .string()
       .refine(
@@ -62,6 +65,8 @@ export const specSchema = z
               .tuple([z.number(), z.number(), z.number()])
               .default([0, 0, 0]),
             facing: z.string().default("camera"),
+            posture: z.enum(["standing", "seated"]).default("standing"),
+            prop: z.enum(["none", "phone"]).default("none"),
             hoodie: z
               .string()
               .regex(/^#[a-fA-F0-9]{6}$/)
@@ -81,13 +86,14 @@ export const specSchema = z
           .object({
             speaker: z.string(),
             text: z.string().trim().min(1).max(1000),
+            tts_direction: z.string().trim().min(1).max(240).optional(),
             emotion: z.enum(emotions).default("neutral"),
             intensity: z.number().min(0).max(1).default(0.5),
             pitch: z
               .enum(["flat", "up", "down", "rise_end", "fall_end", "lively"])
               .optional(),
             speed: z.number().min(0.5).max(2).optional(),
-            shot: z.enum(["full", "mid", "close", "auto"]).default("auto"),
+            shot: z.enum(["full", "mid", "close", "two", "auto"]).default("auto"),
             gesture: z.enum(gestures).optional(),
             pause_after: z.number().min(0).max(0.6).optional(),
             start: z.number().nonnegative().optional(),
@@ -107,6 +113,14 @@ export const specSchema = z
       )
       .min(1)
       .max(200),
+    actions: z.array(z.object({
+      character: z.string(),
+      type: z.enum(["walk", "run", "sit", "stand"]),
+      at_line: z.number().int().min(1),
+      offset: z.number().min(0).default(0),
+      duration: z.number().min(0.4).max(20),
+      to: z.tuple([z.number(), z.number(), z.number()]).optional(),
+    }).strict()).default([]),
     outro: z
       .object({
         type: z.enum(["card", "none"]).default("card"),
@@ -125,6 +139,8 @@ export const specSchema = z
           .enum(["bold_white", "yellow_pop", "boxed"])
           .default("bold_white"),
         max_words_per_chunk: z.number().int().min(2).max(5).default(5),
+        size: z.number().min(0.025).max(0.06).default(0.052),
+        position: z.number().min(0.58).max(0.77).default(0.72),
       })
       .strict()
       .default({}),
@@ -149,7 +165,20 @@ export const specSchema = z
             message: "Timed speech slots must not overlap",
           });
       });
+    if (timed && s.target_duration !== undefined)
+      ctx.addIssue({
+        code: "custom",
+        path: ["target_duration"],
+        message:
+          "target_duration cannot be combined with fixed line start/end times",
+      });
     const ids = s.characters.map((c) => c.id);
+    s.actions.forEach((a, i) => {
+      if (!ids.includes(a.character)) ctx.addIssue({code:"custom",path:["actions",i,"character"],message:"must name a character"});
+      if (a.at_line > s.lines.length) ctx.addIssue({code:"custom",path:["actions",i,"at_line"],message:"must reference an existing line (starting at 1)"});
+      if ((a.type === "walk" || a.type === "run") && !a.to) ctx.addIssue({code:"custom",path:["actions",i,"to"],message:"walking/running requires a destination"});
+      if (a.to && (a.type === "sit" || a.type === "stand")) ctx.addIssue({code:"custom",path:["actions",i,"to"],message:"sit/stand keeps the current position"});
+    });
     if (new Set(ids).size !== ids.length)
       ctx.addIssue({
         code: "custom",

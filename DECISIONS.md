@@ -5,16 +5,19 @@
 - System FFmpeg has neither libass nor drawtext. Render captions onto a browser composition canvas, while still emitting ASS. Alternative: install FFmpeg with libass later.
 - Fish endpoint documentation checked on 2026-10-18: JSON POST /v1/tts, model header, reference_id, prosody speed/volume; WAV supports 44.1 kHz, converted locally to 48 kHz. Keep requested default s2-pro, configurable. https://docs.fish.audio/api-reference/endpoint/openapi-v1/text-to-speech
 - Never persist the supplied credential. Runtime environment credentials only; mock fallback when unavailable or network blocked.
-- No licensed VRM supplied: use original procedural mannequin. No downloaded asset is assumed licensed.
+- User supplied `~/Downloads/Cactus Boy.vrm`; embedded metadata names Polygonal Mind and CC0. Use it for the Khan render and preserve a copy at `assets/characters/cactus_boy.vrm`. The source project's 100Avatars release page also identifies the collection as CC0: https://github.com/PolygonalMind/100Avatars/releases. Alternative: built-in Atlas mannequin if VRM loading is unavailable.
 - Use `node --import tsx` to avoid tsx CLI IPC listener restricted in this sandbox.
 - Use `pnpm run doctor`: pnpm's built-in doctor takes precedence over package scripts.
-- Cached Three 0.182.0, Vite 6.4.1, YAML 2.7.1, TS 5.9.3, tsx 4.23.15. No cached Vitest or three-vrm: Node's test runner temporarily replaces Vitest; VRM support will use an optional adapter with explicit dependency instructions.
+- Cached Three 0.182.0, Vite 6.4.1, YAML 2.7.1, TS 5.9.3, tsx 4.23.15. No cached Vitest or three-vrm: Node's test runner temporarily replaces Vitest; `@pixiv/three-vrm` is now a pinned required dependency because the Khan spec explicitly selects a VRM. Run `pnpm install` where registry access is available.
 - Empty macOS speech output is fatal. Synthetic tones are allowed only in explicitly labeled test fixtures, never as a replacement for requested spoken dialogue.
 - Tested VideoToolbox execution, not just encoder listing: use libx264 when device encoding is unavailable.
 - Restored Mediabunny 1.50.3 from local cache for actual in-page WebCodecs MP4 muxing. Both complete transports are benchmarked when the browser can run; no speed claim without execution.
-- Optional three-vrm 3.5.5 is exact-pinned and handled by a Vite virtual module so offline mannequin builds work. Package source/license: https://github.com/pixiv/three-vrm (MIT).
+- `@pixiv/three-vrm` 3.5.5 is exact-pinned. Package source/license: https://github.com/pixiv/three-vrm (MIT).
 - Minimum 1.4 s shot duration takes precedence over a new-speaker cut on very short lines; hold both camera subject and preset until an allowed boundary.
 - No bypass of sandbox restrictions was attempted. Inaccessible speech, listeners, browser and network are recorded as blockers; docs give normal terminal commands.
+- Each default render writes to a new `out/<id>/run-<timestamp>/` directory with `log.txt`; `--resume` can reuse a completed matching run. This avoids overwriting prior renders and failure logs.
+- The original Khan caption timestamps produced wildly different `atempo` ratios (0.34×–2.63× in the successful run). Treat those caption times as approximate: target 30 seconds at the script level, reserve the intro/pauses/outro, and fit all line audio with one shared tempo ratio. This keeps the video length while retaining each line's natural relative duration. Alternative: keep the original per-line schedule, which audibly squeezes long phrases into tiny caption windows.
+- Added a second Khan spec using the user-provided Cool Banana VRM so both supplied avatars are selectable without overwriting the original Cactus Boy variant.
 
 ## Timed script / Atlas update
 - User's exact 0–28 s caption schedule overrides inferred speech timing for the new spec; pitch-preserving FFmpeg atempo chains fit each line without dropping its words. 28–30 s is the requested website outro.

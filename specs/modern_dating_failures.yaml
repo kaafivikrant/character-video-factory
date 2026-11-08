@@ -1,0 +1,146 @@
+id: modern_dating_failures
+format: vertical
+fps: 30
+seed: 63
+target_duration: 24
+staging: conversation
+scene: street_night
+music: null
+characters:
+  - id: arjun
+    model: assets/characters/cactus_boy.vrm
+    voice: ${FISH_VOICE_HERO}
+    position: [-0.65, 0, 0.15]
+    facing: kabir
+    prop: phone
+  - id: kabir
+    model: assets/characters/cool_banana.vrm
+    voice: ${FISH_VOICE_FRIEND}
+    position: [0.65, 0, 0]
+    facing: arjun
+    posture: seated
+lines:
+  - speaker: arjun
+    text: "Modern dating is impossible. She wants emotional availability."
+    emotion: defensive
+    intensity: 0.6
+    speed: 1.0
+    shot: two
+    gesture: palm_out
+    pause_after: 0.16
+  - speaker: kabir
+    text: "What did you tell her?"
+    emotion: neutral
+    intensity: 0.45
+    speed: 1.0
+    shot: mid
+    gesture: lean_in
+    pause_after: 0.12
+  - speaker: arjun
+    text: "I sent a thumbs-up to her heartfelt paragraph."
+    emotion: embarrassed
+    intensity: 0.6
+    speed: 1.0
+    shot: mid
+    gesture: hand_to_neck
+    pause_after: 0.16
+  - speaker: kabir
+    text: "She asked if you were honest?"
+    emotion: neutral
+    intensity: 0.5
+    speed: 1.0
+    shot: mid
+    gesture: shrug
+    pause_after: 0.12
+  - speaker: arjun
+    text: "I said I'm six-foot in the right shoes."
+    emotion: defensive
+    intensity: 0.55
+    speed: 1.0
+    shot: two
+    gesture: palm_out
+    pause_after: 0.18
+  - speaker: kabir
+    text: "You're five-eleven."
+    emotion: deadpan
+    intensity: 0.6
+    speed: 1.0
+    shot: close
+    gesture: hand_to_chest
+    pause_after: 0.18
+  - speaker: arjun
+    text: "The shoes are very supportive."
+    emotion: determined
+    intensity: 0.45
+    speed: 1.0
+    shot: mid
+    gesture: hold_phone
+    pause_after: 0.14
+  - speaker: kabir
+    text: "Then she asked about your ambition?"
+    emotion: neutral
+    intensity: 0.5
+    speed: 1.0
+    shot: mid
+    gesture: palm_out
+    pause_after: 0.12
+  - speaker: arjun
+    text: "I sent my LinkedIn profile."
+    emotion: happy
+    intensity: 0.45
+    speed: 1.0
+    shot: close
+    gesture: hand_to_chest
+    pause_after: 0.14
+  - speaker: kabir
+    text: "And?"
+    emotion: neutral
+    intensity: 0.4
+    speed: 1.0
+    shot: mid
+    gesture: lean_in
+    pause_after: 0.18
+  - speaker: arjun
+    text: "She said, 'Let's keep this professional.'"
+    emotion: embarrassed
+    intensity: 0.7
+    speed: 1.0
+    shot: close
+    gesture: head_down
+    pause_after: 0.2
+  - speaker: kabir
+    text: "Congrats. You got friend-zoned by HR."
+    emotion: happy
+    intensity: 0.65
+    speed: 1.0
+    shot: two
+    gesture: shrug
+    pause_after: 0.18
+  - speaker: arjun
+    text: "She just connected with me."
+    emotion: surprised
+    intensity: 0.65
+    speed: 1.0
+    shot: mid
+    gesture: hold_phone
+    pause_after: 0.14
+  - speaker: kabir
+    text: "She blocked you on LinkedIn."
+    emotion: deadpan
+    intensity: 0.7
+    speed: 1.0
+    shot: two
+    gesture: hand_to_chest
+    pause_after: 0
+actions:
+  - { character: arjun, type: walk, at_line: 1, offset: 0.45, duration: 1.1, to: [-0.8, 0, 0.12] }
+  - { character: arjun, type: walk, at_line: 9, offset: 0.25, duration: 1.0, to: [-0.65, 0, 0.15] }
+  - { character: kabir, type: stand, at_line: 13, offset: 0, duration: 0.8 }
+outro:
+  type: none
+  duration: 0
+captions:
+  style: bold_white
+  size: 0.036
+  position: 0.75
+  max_words_per_chunk: 4

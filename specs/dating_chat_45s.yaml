@@ -1,0 +1,113 @@
+id: dating_chat_45s
+format: vertical
+fps: 30
+seed: 45
+target_duration: 45
+voice_prompt: "Two distinct adult male friends in a relaxed, natural conversation. Keep both voices steady in pace and clearly different in tone. Contemporary Indian English, warm and conversational, playful dry humor, clear diction. Do not shout, caricature accents, or rush punchlines."
+scene: street_night
+music: null
+characters:
+  - id: arjun
+    model: assets/characters/cactus_boy.vrm
+    voice: ${FISH_VOICE_HERO}
+    position: [-0.7, 0, 0]
+    facing: kabir
+    hoodie: "#52766b"
+    pants: "#273b46"
+  - id: kabir
+    model: assets/characters/cool_banana.vrm
+    voice: ${FISH_VOICE_FRIEND}
+    position: [0.7, 0, 0]
+    facing: arjun
+    hoodie: "#c0783e"
+    pants: "#343149"
+lines:
+  - speaker: arjun
+    text: "Kabir, I think my date is upset with me. She replied ‘okay’ with a full stop."
+    tts_direction: "Open like a friend sharing a serious concern, then let the full stop detail sound comically overanalyzed."
+    emotion: embarrassed
+    intensity: 0.55
+    gesture: hold_phone
+    shot: mid
+    pause_after: 0.18
+  - speaker: kabir
+    text: "Did you ask her, or did you ask your entire group chat to decode it?"
+    tts_direction: "Teasing but affectionate; make the contrast crisp and keep the pace easy."
+    emotion: deadpan
+    intensity: 0.65
+    gesture: palm_out
+    shot: auto
+    pause_after: 0.18
+  - speaker: arjun
+    text: "The group chat has a spreadsheet. We’re still collecting evidence."
+    tts_direction: "Proudly present an obviously ridiculous solution, with a small pause before spreadsheet."
+    emotion: determined
+    intensity: 0.55
+    gesture: point
+    shot: auto
+    pause_after: 0.18
+  - speaker: kabir
+    text: "Maybe she was just busy. People have work, friends, and lives outside your investigation."
+    tts_direction: "Gently bring him back to earth; sincere, amused, and not scolding."
+    emotion: neutral
+    intensity: 0.55
+    gesture: hand_to_chest
+    shot: auto
+    pause_after: 0.18
+  - speaker: arjun
+    text: "Right. I should talk to her instead of treating punctuation like a crime scene."
+    tts_direction: "Realize the point as you speak; lightly emphasize crime scene."
+    emotion: surprised
+    intensity: 0.5
+    gesture: shrug
+    shot: auto
+    pause_after: 0.18
+  - speaker: kabir
+    text: "Exactly. Ask what she thinks. Listen to the answer. Wild technology, I know."
+    tts_direction: "Supportive advice with a dry little joke at the end; do not sound sarcastic about her."
+    emotion: deadpan
+    intensity: 0.65
+    gesture: open_arms
+    shot: auto
+    pause_after: 0.18
+  - speaker: arjun
+    text: "And if she says she wants to take things slowly?"
+    tts_direction: "Ask with genuine curiosity, not as a challenge."
+    emotion: neutral
+    intensity: 0.45
+    pitch: rise_end
+    gesture: lean_in
+    shot: auto
+    pause_after: 0.18
+  - speaker: kabir
+    text: "Respect that. Dating is two people getting to know each other, not a speedrun."
+    tts_direction: "Warm and matter-of-fact; land speedrun as the punchline."
+    emotion: determined
+    intensity: 0.55
+    gesture: palm_out
+    shot: auto
+    pause_after: 0.18
+  - speaker: arjun
+    text: "Got it. No pressure, no assumptions, and definitely no spreadsheet."
+    tts_direction: "Make a sincere promise, then add a playful beat on definitely no spreadsheet."
+    emotion: happy
+    intensity: 0.55
+    gesture: hand_to_chest
+    shot: auto
+    pause_after: 0.18
+  - speaker: kabir
+    text: "You can keep the spreadsheet. Just use it to plan our cricket night."
+    tts_direction: "Friendly closing tease, relaxed and upbeat."
+    emotion: happy
+    intensity: 0.55
+    gesture: point
+    shot: auto
+    pause_after: 0
+outro:
+  type: card
+  text: "Good conversations start with listening."
+  duration: 3
+  background: "#f4f0e8"
+captions:
+  style: bold_white
+  max_words_per_chunk: 5

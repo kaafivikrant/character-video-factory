@@ -1,0 +1,178 @@
+id: khan_30s_banana
+format: vertical
+fps: 30
+seed: 27
+target_duration: 30
+voice_prompt: "Keep the reference voice consistent: natural American English, close conversational delivery, dry understated humor, steady medium pace, clear diction."
+scene: misty_lake_bridge
+music: null
+characters:
+  - id: hero
+    model: assets/characters/cool_banana.vrm
+    voice: ${FISH_VOICE_HERO}
+    position:
+      - 0
+      - 0
+      - 0
+    facing: camera
+    hoodie: "#52766b"
+    pants: "#273b46"
+lines:
+  - speaker: hero
+    text: "My girlfriend found out."
+    tts_direction: "Dry, casual opening; let the reveal land with a small downward finish."
+    emotion: deadpan
+    intensity: 0.65
+    pitch: flat
+    gesture: hold_phone
+    shot: auto
+    pause_after: 0.05
+    tags: []
+  - speaker: hero
+    text: "I still have a Chinese dating app on my phone."
+    tts_direction: "Mildly concerned and a little defensive, but casual; gently emphasize Chinese dating app."
+    emotion: sad
+    intensity: 0.65
+    pitch: down
+    gesture: hold_phone
+    shot: auto
+    pause_after: 0.05
+    tags: []
+  - speaker: hero
+    text: "And now she thinks I’m cheating."
+    tts_direction: "Hint at mock concern and disbelief; keep cheating understated and lift the pitch slightly at the end."
+    emotion: sad
+    intensity: 0.65
+    pitch: rise_end
+    gesture: palm_out
+    shot: auto
+    pause_after: 0.05
+    tags: []
+  - speaker: hero
+    text: "I tried explaining that..."
+    tts_direction: "A small hesitation before the unfinished explanation; conversational, not dramatic."
+    emotion: deadpan
+    intensity: 0.65
+    pitch: flat
+    gesture: shrug
+    shot: auto
+    pause_after: 0.05
+    tags: []
+  - speaker: hero
+    text: "I only use it to study the matchmaking algorithms."
+    tts_direction: "Earnest over-explanation with dry comic irony; steady pace and clear diction."
+    emotion: determined
+    intensity: 0.65
+    pitch: flat
+    gesture: hand_to_chest
+    shot: auto
+    pause_after: 0.05
+    tags: []
+  - speaker: hero
+    text: "I’ve been creating fictional profiles."
+    tts_direction: "Matter-of-fact with a faint note of pride on fictional profiles."
+    emotion: determined
+    intensity: 0.65
+    pitch: lively
+    gesture: open_arms
+    shot: auto
+    pause_after: 0.05
+    tags: []
+  - speaker: hero
+    text: "For a 60-year-old businessman in Shanghai."
+    tts_direction: "Deadpan reveal; lightly emphasize 60-year-old businessman in Shanghai."
+    emotion: deadpan
+    intensity: 0.65
+    pitch: up
+    gesture: hold_phone
+    shot: auto
+    pause_after: 0.05
+    tags: []
+  - speaker: hero
+    text: "To see which personality rates..."
+    tts_direction: "Continue the serious explanation; leave the thought open and do not make it sound like a question."
+    emotion: determined
+    intensity: 0.65
+    pitch: flat
+    gesture: point
+    shot: auto
+    pause_after: 0.05
+    tags: []
+  - speaker: hero
+    text: "attracts the most attention."
+    tts_direction: "Complete the thought smoothly; lightly stress attracts the most attention and settle downward."
+    emotion: determined
+    intensity: 0.65
+    pitch: fall_end
+    gesture: hand_to_chest
+    shot: auto
+    pause_after: 0.05
+    tags: []
+  - speaker: hero
+    text: "Huh?"
+    tts_direction: "Brief puzzled reaction with a small upward inflection; no gasp or exaggerated surprise."
+    emotion: surprised
+    intensity: 0.85
+    pitch: rise_end
+    gesture: step_back
+    shot: auto
+    pause_after: 0.05
+    tags: []
+  - speaker: hero
+    text: "She asked why one of them was called..."
+    tts_direction: "Set up the quote with a slight conspiratorial tone; keep it conversational."
+    emotion: defensive
+    intensity: 0.65
+    pitch: flat
+    gesture: palm_out
+    shot: auto
+    pause_after: 0.05
+    tags: []
+  - speaker: hero
+    text: "“Handsome Dragon 88.”"
+    tts_direction: "Say the nickname clearly with restrained embarrassment; do not use a character voice."
+    emotion: embarrassed
+    intensity: 0.65
+    pitch: up
+    gesture: hand_to_neck
+    shot: auto
+    pause_after: 0.05
+    tags: []
+  - speaker: hero
+    text: "Brother, that’s my highest performing account."
+    tts_direction: "Casual confident punchline; emphasize highest performing account without shouting."
+    emotion: defensive
+    intensity: 0.65
+    pitch: up
+    gesture: hold_phone
+    shot: auto
+    pause_after: 0.05
+    tags: []
+  - speaker: hero
+    text: "I’m not deleting three months of research."
+    tts_direction: "Defensive but sincere; stress three months of research and land the ending firmly."
+    emotion: determined
+    intensity: 0.65
+    pitch: fall_end
+    gesture: hand_to_chest
+    shot: auto
+    pause_after: 0.05
+    tags: []
+  - speaker: hero
+    text: "You met me at a very Chinese time in my life."
+    tts_direction: "Warm and reflective, slightly softer and slower; sincere ending without melodrama."
+    emotion: wistful
+    intensity: 0.65
+    pitch: down
+    gesture: look_away
+    shot: close
+    pause_after: 0
+    tags: []
+outro:
+  type: card
+  text: www.childrenofkhan.com
+  duration: 2
+  background: "#f4f0e8"
+captions:
+  style: bold_white
+  max_words_per_chunk: 5

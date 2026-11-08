@@ -20,9 +20,15 @@ for await (const path of glob(pattern)) {
       path,
       status: r.dry ? "DRY" : "PASS",
       seconds: r.totalSeconds,
+      outputDir: r.outputDir,
     });
   } catch (e) {
-    results.push({ path, status: "FAIL", error: e.message });
+    results.push({
+      path,
+      status: "FAIL",
+      error: e.message,
+      outputDir: e.outputDir,
+    });
   }
 }
 console.table(results);

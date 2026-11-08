@@ -1,0 +1,98 @@
+id: dating_chat_v2
+format: vertical
+fps: 30
+seed: 45
+target_duration: 20
+staging: conversation
+scene: street_night
+characters:
+  - id: arjun
+    model: assets/characters/cactus_boy.vrm
+    voice: ${FISH_VOICE_HERO}
+    position: [-0.65, 0, 0.15]
+    facing: kabir
+    prop: phone
+  - id: kabir
+    model: assets/characters/cool_banana.vrm
+    voice: ${FISH_VOICE_FRIEND}
+    position: [0.65, 0, 0]
+    facing: arjun
+    posture: seated
+lines:
+  - speaker: arjun
+    text: "She replied ‘okay.’ With a full stop."
+    emotion: embarrassed
+    intensity: 0.65
+    speed: 1.0
+    gesture: hold_phone
+    shot: two
+    pause_after: 0.16
+  - speaker: kabir
+    text: "Maybe she finished the sentence."
+    emotion: deadpan
+    intensity: 0.5
+    speed: 1.0
+    gesture: shrug
+    shot: mid
+    pause_after: 0.12
+  - speaker: arjun
+    text: "The group chat has opened an investigation."
+    emotion: determined
+    intensity: 0.7
+    speed: 1.0
+    gesture: point
+    shot: two
+    pause_after: 0.14
+  - speaker: kabir
+    text: "Just ask if dinner’s still on."
+    emotion: neutral
+    intensity: 0.55
+    speed: 1.0
+    gesture: palm_out
+    shot: mid
+    pause_after: 0.12
+  - speaker: arjun
+    text: "She said, ‘Yes, you idiot.’"
+    emotion: happy
+    intensity: 0.5
+    speed: 1.0
+    gesture: hold_phone
+    shot: mid
+    pause_after: 0.16
+  - speaker: kabir
+    text: "Case closed."
+    emotion: deadpan
+    intensity: 0.55
+    speed: 1.0
+    gesture: hand_to_chest
+    shot: two
+    pause_after: 0.18
+  - speaker: arjun
+    text: "No full stop. She’s tampering with the evidence."
+    emotion: surprised
+    intensity: 0.75
+    speed: 1.0
+    gesture: point
+    shot: close
+    pause_after: 0.2
+  - speaker: kabir
+    text: "Read me the first message."
+    emotion: deadpan
+    intensity: 0.65
+    speed: 1.0
+    gesture: palm_out
+    shot: two
+    pause_after: 0
+# Cues follow measured speech, rather than fixed timestamps.
+actions:
+  - { character: arjun, type: walk, at_line: 1, offset: 0.55, duration: 1.2, to: [-0.85, 0, 0.12] }
+  - { character: arjun, type: walk, at_line: 3, offset: 0.2, duration: 1.2, to: [-0.65, 0, 0.15] }
+  - { character: kabir, type: stand, at_line: 8, offset: 0, duration: 0.8 }
+outro:
+  type: none
+  duration: 0
+captions:
+  style: bold_white
+  size: 0.036
+  position: 0.75
+  max_words_per_chunk: 4

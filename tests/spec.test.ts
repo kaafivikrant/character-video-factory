@@ -2,9 +2,12 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { loadSpec } from "../src/spec/load";
 import { specSchema } from "../src/spec/schema";
-test("all four fixtures validate", () => {
+test("fixtures validate", () => {
   for (const id of ["sample_hook", "short_8s", "landscape", "dialogue"])
     assert.equal(loadSpec(`specs/${id}.yaml`).id, id);
+  const banana = loadSpec("specs/khan_30s_banana.yaml");
+  assert.equal(banana.target_duration, 30);
+  assert.equal(banana.characters[0].model, "assets/characters/cool_banana.vrm");
 });
 test("invalid speaker and traversal rejected", () => {
   const s = loadSpec("specs/sample_hook.yaml");

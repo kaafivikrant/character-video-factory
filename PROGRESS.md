@@ -110,3 +110,58 @@ Run the README commands from a terminal with speech, localhost, browser and netw
 - Official Fish docs list `s2.1-pro-free` for the free developer tier; paid model names include `s2-pro` and `s2.1-pro`. The voice model ID remains a separate `reference_id`.
 - Fish client now prints a bounded server error detail and immediately stops retrying non-retryable client responses such as 402. README documents billing/credit checks and the optional free-tier model.
 - Next: rerun with `FISH_MODEL=s2.1-pro-free` only if the Fish account is eligible; if 402 persists, check the Fish API dashboard for API credit/billing and verify the key is an API key. No project-side change can grant account credits or plan access.
+
+## Follow-up: first real Fish render / QA
+- User's local M1 render completed all 15 TTS calls with Fish (`MOCK:false`), rendered 900 frames on ANGLE Metal, and muxed a 30-second H.264/AAC video.
+- User's QA report passed codec, dimensions/fps, duration, clipping, speech gaps, caption alignment, lip motion, renderer/GPU, blank-frame, character-presence, and determinism checks. Only loudness failed: −15.15 LUFS against the −15 to −13 range.
+- Contact sheet and first full-resolution still inspected. Visible issues: top of head cropped in several shots; exaggerated cheeks and square oversized mouth. Updated camera FOV/framing and Atlas face geometry/mouth animation.
+- Audio experiment on the captured WAV: pre-limiter +1.5 dB, peak limiting at 0.84 amplitude, then loudnorm measured −14.0 LUFS in the candidate output. Added this chain to final mux.
+- `pnpm build` passes after source changes. Re-render from this execution sandbox fails at capture (`listen EPERM`); QA of the prior video reproduces loudness failure and also cannot launch its fresh-browser determinism check. M7 acceptance remains pending a local rerun and visual inspection.
+
+## Follow-up: supplied Cactus Boy VRM and per-run output
+
+- Copied the user-provided `~/Downloads/Cactus Boy.vrm` to `assets/characters/cactus_boy.vrm`; embedded model metadata declares CC0 and Polygonal Mind. Khan spec now selects it. The camera frames the loaded model using measured bounds, and VRM load failures are explicit.
+- Made `@pixiv/three-vrm` 3.5.5 a pinned required dependency. The current offline sandbox does not have the package installed; `pnpm install` must run on the connected Mac before using this VRM.
+- Each ordinary render creates `out/<id>/run-<timestamp>/` and records stages/errors in `log.txt`. `pnpm qa out/<id>` resolves to the latest run; `--resume` reuses a completed matching run.
+- Fixed the mux loudness filter. A direct mux of existing captured frames/timeline produced a candidate measuring −14.2 LUFS and −1.5 dBTP. This is a filter experiment, not a fresh end-to-end pass.
+- Remaining verification: `pnpm build` after final edits and a full local Khan rerender with visual/contact-sheet QA. Local browser automation here fails at localhost bind with EPERM, so no fresh Cactus Boy video or contact sheet is claimed.
+
+### Morning TODO
+
+- Run `pnpm install` from the normal connected terminal, then `pnpm render specs/khan_30s.yaml`.
+- Inspect the printed timestamped run folder's `log.txt`, `contact.png`, `report.json`, and `video.mp4`; confirm Fish providers, framing, and all QA checks.
+
+## Follow-up: Cool Banana and voice pace correction
+
+- Added `assets/characters/cool_banana.vrm` from the user-provided download; embedded metadata identifies Cool Banana, Polygonal Mind, CC0, allowed user Everyone. Added license record and `specs/khan_30s_banana.yaml` variant while preserving the Cactus Boy spec.
+- Diagnosed pace jumps in the last successful Fish run: fixed one-second caption windows caused per-line atempo factors from 0.34× to 2.63× (mean 1.27×). The worst example was “she asked why one of them was called” squeezed from 2.63 s into 1 s.
+- Added `target_duration` and group fitting: Khan specs reserve intro, 14 consistent 50 ms pauses, and the 2 s outro, then apply a common audio tempo ratio to all lines. Caption timing now follows the fitted speech timeline. Target remains 30 s / 900 frames.
+- Added unit coverage for common group tempo and 30-second timeline math. `pnpm test`: 14/14 pass; `pnpm build`: pass. The rerender used all 15 cached Fish lines (no API calls), built the new timeline, then capture stopped with sandbox `listen EPERM: operation not permitted 127.0.0.1`.
+- The new timeline applies the same 1.2139× ratio to every utterance (spread below 1e-12; previous output varied 0.34×–2.63×). Generated `out/khan_30s/run-2026-10-18T04-08-08-937Z/voice-preview.wav`: 30.000 s, −14.4 LUFS, −1.5 dBTP. No fresh video was made because capture was blocked.
+- Audio could be measured from the actual Fish render, but the installed Whisper CLI is broken because its Python 3.9 interpreter path no longer exists. No subjective listening or transcript claim is made.
+- Replaced generic stacked mood/pitch tags in both Khan specs with one shared voice brief and one short per-line acting cue; Khan prosody speed is fixed at 1.0. Lowered Fish sampling temperature from 0.7 to 0.55 for steadier delivery and included sampling parameters in the cache key. These new prompts have not been sent to Fish yet; doing so would incur TTS API usage.
+
+## Conversation motion implementation and review cut (2026-10-23)
+
+- Added deterministic action compilation and sampling for walking, running, sitting, and standing, with seeded gait, limb poses, VRM0 normalized-bone handling, hand gestures, two-bone leg IK, speaker/listener framing, and generated bench seating. Documented the action schema in README and added the `dating_chat_v2` dialogue/action fixture.
+- Added motion unit coverage. `pnpm build` passes; `pnpm test` passes 17/17; `git diff --check` passes.
+- Fish API could not resolve `api.fish.audio` from this environment (`ENOTFOUND`). The macOS `say` fallback was also blocked (`sandbox_extension_issue_file failed ... Operation not permitted`) and emitted no usable audio. Both render attempts stopped at TTS; no dialogue audio is claimed.
+- Exported a silent 19.4-second visual review MP4 using Arc/WebCodecs on ANGLE Metal / Apple M1. `ffprobe`: H.264, 1080×1920, 30 fps, yuv420p, 19.4 s; no audio stream. Inspected the contact sheet and stills at 1, 5, 10, and 17 seconds. Walk, changing shots, seated listener, gestures, and stand-up are visible; full audiovisual QA remains pending.
+- Review artifact: `out/dating_chat_v2/motion-review/motion-review.mp4`; contact sheet and selected stills are alongside it. Report explicitly marks this as visual-review-only, not a passed final render.
+- Next: rerun `pnpm render specs/dating_chat_v2.yaml` from the connected macOS terminal with Fish network access, then inspect fresh audio, sync, and QA before judging the finished skit.
+
+## Fish voice ID check
+
+- User's connected terminal reached Fish and got HTTP 400 `Reference not found` on the first TTS line, so this is a voice-reference lookup issue rather than a missing API key.
+- Confirmed against current Fish docs: the `model` HTTP header selects the engine (`s2.1-pro-free` is valid); `reference_id` must separately be a trained TTS voice model ID.
+- Added `pnpm test:voices` to inspect both configured voice IDs via Fish's model endpoint and synthesize a short phrase from each, without printing the API key. Improved the render error to explain the `reference_id`/engine distinction.
+- This agent's network cannot resolve `api.fish.audio`, so the live check could not complete here (`ENOTFOUND`). Build passes. Run `pnpm test:voices` in the connected Terminal to identify which ID Fish rejects.
+- User's connected `pnpm test:voices` confirms Kabir's voice synthesizes successfully (1.25 s); Arjun's current ID returns 404. Extended the check to list trained TTS models for this account when a configured ID returns 404, so the right replacement can be copied without exposing the API key. Build passes after this update.
+- User reran the check: Kabir again succeeded (1.16 s); Arjun is absent from owned trained TTS models. Extended `pnpm test:voices` to list public trained English voice IDs as replacement candidates when no owned model is available. Build passes. Full video render remains blocked until Arjun is assigned a valid, distinct voice ID.
+
+## Prompt leakage fix (2026-10-23)
+
+- User reported the rendered dialogue sounded like the system prompt. Inspected run `out/dating_chat_v2/run-2026-10-23T10-23-12-852Z`: `voice_prompt` and each full prose `tts_direction` had been embedded inside one bracketed TTS text tag. Measured output was 109.15 seconds for an intended 20-second skit; seven of eight lines exceeded speech-duration bounds.
+- Re-ran QA on that artifact. It now correctly FAILS `speech duration matches script`; the original QA only checked media format/sync and had passed despite this obvious content-duration failure.
+- Fixed the Fish payload: only the user's script plus up to two short emotion/pitch tags are sent. Shared `voice_prompt` and prose `tts_direction` are not sent as speech. Added a per-line TTS duration guard, QA duration check, explicit 20-second target and fixed 1.0 speed for the eight-line dating skit.
+- `pnpm build` and `pnpm test` pass (17/17). Local timeline inspection confirms all eight payloads contain only script and short tags. Live Fish synthesis/rerender remains to be verified from the connected terminal because this agent's network cannot resolve Fish.

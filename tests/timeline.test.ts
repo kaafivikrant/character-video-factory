@@ -17,6 +17,19 @@ test("tags stay at two stacked, text preserved and pitches vary", () => {
   }
   assert.deepEqual(d, directLines(s.lines, 7));
 });
+test("Khan TTS keeps instructions out of spoken payload and uses short tags", () => {
+  const s = loadSpec("specs/khan_30s.yaml");
+  const lines = directLines(s.lines, s.seed, s.voice_prompt);
+  for (let i = 0; i < lines.length; i++) {
+    assert.equal(stripTags(lines[i].taggedText), s.lines[i].text);
+    assert.match(lines[i].taggedText, /^\[[^\]]+\] /);
+    assert.ok((lines[i].taggedText.match(/\[/g) || []).length <= 2);
+    assert.ok(!lines[i].taggedText.includes(s.voice_prompt!));
+    assert.ok(!lines[i].taggedText.includes(s.lines[i].tts_direction!));
+    assert.equal(lines[i].speed, 1);
+    assert.equal(lines[i].normalize, true);
+  }
+});
 test("caption chunks preserve words and have at most two rows", () => {
   const s = "I only use it to study the matchmaking algorithms";
   const c = chunks(s, 5);
@@ -44,7 +57,6 @@ test("short utterances keep custom and pitch directions without three stacked ta
     tags: ["sigh", "hesitant"],
   };
   const d = directLines([l], 7)[0];
-  assert.ok(d.taggedText.includes("hesitant"));
   assert.ok(d.taggedText.includes("sigh"));
   assert.equal(d.normalize, false);
   assert.ok(!/\[[^\]]+\]\s*\[[^\]]+\]\s*\[/.test(d.taggedText));

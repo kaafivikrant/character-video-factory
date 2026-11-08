@@ -15,14 +15,19 @@ export class AtlasAdapter extends MannequinAdapter {
     this.root.traverse((o: any) => {
       if (o.isMesh) {
         o.material.flatShading = false;
+        o.material.needsUpdate = true;
         o.material.roughness = 0.78;
       }
     });
     this.nose.visible = false;
-    const baseHair = head.children.find(
-      (o: any) => o.isMesh && o.geometry?.parameters?.radius === 0.227,
-    );
-    if (baseHair) baseHair.visible = false;
+    for (const o of head.children as any[])
+      if (
+        o.isMesh &&
+        (o.geometry?.parameters?.radius === 0.227 ||
+          o.geometry?.parameters?.radius === 0.22 ||
+          (o.geometry?.parameters?.radius === 0.045 && o !== this.nose))
+      )
+        o.visible = false;
     this.brows.forEach((b: any) => (b.visible = false));
     const ellipsoid = (
       parent: any,
@@ -36,11 +41,13 @@ export class AtlasAdapter extends MannequinAdapter {
         parent,
         ...(pos as [number, number, number]),
       );
+      m.material.flatShading = false;
+      m.material.needsUpdate = true;
       m.scale.fromArray(scale);
       return m;
     };
     ellipsoid(head, skin, [0, -0.035, 0.015], [0.19, 0.17, 0.175]);
-    ellipsoid(head, skin, [0, -0.025, 0.188], [0.022, 0.03, 0.018]);
+    ellipsoid(head, skin, [0, -0.025, 0.188], [0.016, 0.021, 0.014]);
     for (const side of [-1, 1]) {
       ellipsoid(
         head,
@@ -50,17 +57,17 @@ export class AtlasAdapter extends MannequinAdapter {
       );
       ellipsoid(
         head,
-        skin,
-        [side * 0.112, -0.075, 0.132],
-        [0.072, 0.065, 0.055],
+        "#b98a75",
+        [side * 0.112, -0.075, 0.157],
+        [0.047, 0.022, 0.009],
       );
     }
     // One smooth cap and swept forelock replace the segmented ball-shaped hair.
     const cap = this.part(
       new THREE.SphereGeometry(
         0.215,
-        28,
-        20,
+        48,
+        32,
         0,
         Math.PI * 2,
         0,
@@ -103,10 +110,14 @@ export class AtlasAdapter extends MannequinAdapter {
       brow.rotation.z = i ? 0.08 : -0.08;
       this.brows[i] = brow;
     }
-    // Mouth remains the animated viseme surface, set in a subtle lip rim.
-    this.mouth.position.z = 0.2;
-    this.mouth.scale.set(0.78, 0.55, 0.8);
-    ellipsoid(head, "#945e50", [0, -0.086, 0.192], [0.033, 0.008, 0.006]);
+    // Replace the mannequin's cuboid mouth with a small rounded viseme surface.
+    this.mouth.visible = false;
+    this.mouth = ellipsoid(
+      head,
+      "#593a35",
+      [0, -0.086, 0.194],
+      [0.032, 0.006, 0.008],
+    );
     // Bomber jacket: stand collar, ribbed hem, center opening, zipper and pockets.
     const collar = this.part(
       new THREE.TorusGeometry(0.115, 0.027, 8, 24),
@@ -193,5 +204,18 @@ export class AtlasAdapter extends MannequinAdapter {
     this.box(0.085, 0.05, 0.019, "#202f33", wrist, 0, -0.257, 0.065);
     this.box(0.052, 0.032, 0.005, "#b9c9b9", wrist, 0, -0.257, 0.077);
     this.phone.material.roughness = 0.28;
+  }
+
+  setViseme(w: any) {
+    const open = THREE.MathUtils.clamp(
+      (w.aa || 0) +
+        0.6 * (w.oh || 0) +
+        0.4 * (w.ou || 0) +
+        0.3 * (w.ee || 0) +
+        0.2 * (w.ih || 0),
+      0,
+      1,
+    );
+    this.mouth.scale.set(0.032, 0.006 + open * 0.026, 0.008);
   }
 }

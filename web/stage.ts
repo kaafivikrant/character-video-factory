@@ -6,7 +6,9 @@ import { mistyLake } from "./scenes/misty_lake_bridge";
 import { streetNight } from "./scenes/street_night";
 import { hdri } from "./scenes/hdri";
 import { vignette } from "./post";
-import { gesturePose, ease } from "../src/timeline/gestures";
+import { ease } from "../src/timeline/gestures";
+import { actingPose, sampleMotion } from "../src/timeline/motion";
+import { addBench } from "./scenes/bench";
 const rng = (seed: number, i: number) => {
   const x = Math.sin(seed * 127.1 + i * 311.7) * 43758.5453;
   return x - Math.floor(x);
@@ -26,7 +28,7 @@ async function load(t: any) {
   fallbacks = [];
   characters = [];
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(27, t.size[0] / t.size[1], 0.05, 150);
+  camera = new THREE.PerspectiveCamera(38, t.size[0] / t.size[1], 0.05, 150);
   renderer?.dispose();
   renderer = new THREE.WebGLRenderer({
     antialias: true,
@@ -77,12 +79,22 @@ async function load(t: any) {
       }
       await adapter.load();
     } catch {
+      if (config.model.toLowerCase().endsWith(".vrm"))
+        throw new Error(
+          `${config.id}: could not load ${config.model}. Install the pinned @pixiv/three-vrm dependency and verify the VRM file before rendering.`,
+        );
       adapter = new MannequinAdapter(config);
       await adapter.load();
       fallbacks.push(`${config.id}: mannequin`);
     }
     scene.add(adapter.root);
-    characters.push({ id: config.id, config, adapter });
+    const bounds = new THREE.Box3().setFromObject(adapter.root);
+    const height = adapter.metrics?.height || bounds.getSize(new THREE.Vector3()).y;
+    const peer = t.spec.characters.find((other:any)=>other.id===config.facing);
+    const yaw = peer ? Math.max(-.6,Math.min(.6,Math.atan2(peer.position[0]-config.position[0],peer.position[2]-config.position[2]))) : 0;
+    characters.push({ id: config.id, config, adapter, bounds, height, yaw });
+    const seating = t.actions?.find((a:any)=>a.character===config.id&&a.type==='sit');
+    if(config.posture==='seated'||seating) addBench(scene,config.posture==='seated'?config.position:seating.from,adapter.metrics?.seatHeight||.36,yaw);
   }
   const gl = renderer.getContext(),
     ext = gl.getExtension("WEBGL_debug_renderer_info");
@@ -112,59 +124,28 @@ function renderFrame(
   const shot = timeline.shots[activeIndex];
   let shotStart = activeIndex;
   while (shotStart > 0 && !timeline.shots[shotStart].cut) shotStart--;
-  const subject =
-      characters.find((c) => c.id === shot.speaker) || characters[0],
-    p = subject.config.position;
-  const target = new THREE.Vector3(
-    p[0],
-    p[1] + (shot.shot === "full" ? 0.9 : shot.shot === "close" ? 1.55 : 1.18),
-    p[2],
-  );
-  const aspect = w / h;
-  const distance =
-    (shot.shot === "full" ? 5.4 : shot.shot === "close" ? 3.0 : 2.6) *
-    (aspect < 0.8 ? 1.12 : 1);
-  const push =
-    1 -
-    Math.min(0.03, Math.max(0, t - timeline.shots[shotStart].start) * 0.003);
-  camera.position.set(
-    target.x + Math.sin(t * 0.31 + timeline.seed) * 0.008,
-    target.y + 0.07,
-    target.z + distance * push,
-  );
-  camera.lookAt(target);
-  camera.rotation.z = Math.sin(t * 0.39 + timeline.seed) * 0.0018;
   for (const c of characters) {
     const a = c.adapter;
     a.root.visible = !backgroundOnly;
     const isSpeaker = line?.speaker === c.id;
     const phase = timeline.seed + c.config.position[0] * 7;
-    const pose: any = {
-      spine: [
-        Math.sin(t * 1.3 + phase) * 0.01,
-        0,
-        Math.sin(t * 0.7 + phase) * 0.015,
-      ],
-      head: [
-        Math.sin(t * 0.9 + phase) * 0.012,
-        Math.sin(t * 0.37 + phase) * 0.025,
-        0,
-      ],
-    };
-    if (isSpeaker)
-      Object.assign(
-        pose,
-        gesturePose(
-          line.gesture,
-          t - line.start,
-          line.end - line.start,
-          line.intensity,
-        ),
-      );
-    else pose.head[0] += Math.sin(t * 2 + phase) * 0.025;
+    const motion = sampleMotion(c.config,timeline.actions||[],t);
+    a.root.position.fromArray(motion.position);
+    let yaw=c.yaw;
+    if(motion.gait) {
+      const delta=Math.atan2(Math.sin(motion.gait.yaw-yaw),Math.cos(motion.gait.yaw-yaw));
+      yaw+=delta*motion.gait.weight;
+    }
+    a.root.rotation.y=yaw;
+    a.setBody?.(motion);
+    const pose=actingPose(t,phase,isSpeaker?line:null,c.config.prop==='phone',motion.seated,motion.gait);
+    const peer=characters.find(o=>o.id===c.config.facing);
+    if(peer) {
+      const relative = new THREE.Vector3().fromArray(sampleMotion(peer.config,timeline.actions||[],t).position).sub(a.root.position);
+      const turn=Math.atan2(Math.sin(Math.atan2(relative.x,relative.z)-yaw),Math.cos(Math.atan2(relative.x,relative.z)-yaw));
+      pose.head[1]+=Math.max(-.25,Math.min(.25,turn));
+    }
     a.setPose(pose);
-    a.root.position.y =
-      c.config.position[1] + Math.sin(t * 1.7 + phase) * 0.006;
     const faceNames = [
       "happy",
       "sad",
@@ -210,16 +191,31 @@ function renderFrame(
     };
     mouthState[c.id] = weights;
     a.setViseme(weights);
-    if (a.phone) a.phone.visible = isSpeaker && line.gesture === "hold_phone";
-    const gaze =
-      isSpeaker || !line
-        ? camera.position
-        : characters
-            .find((o) => o.id === line.speaker)
-            ?.adapter.root.position.clone()
-            .add(new THREE.Vector3(0, 1.6, 0));
-    a.lookAt(gaze || camera.position);
+    if (a.phone) a.phone.visible = c.config.prop==='phone' || (isSpeaker && line.gesture==='hold_phone');
     a.update(0);
+  }
+  const subject=characters.find(c=>c.id===shot.speaker)||characters[0];
+  const shared=characters.length>1 && (shot.shot==='two'||shot.shot==='full'||(timeline.spec.staging==='conversation'&&activeIndex===0));
+  const head=subject.adapter.point?.('head') || subject.adapter.root.position.clone().add(new THREE.Vector3(0,subject.height*.85,0));
+  let target=new THREE.Vector3(),distance:number;
+  if(shared){
+    const minX=Math.min(...characters.map(c=>c.adapter.root.position.x-.45));
+    const maxX=Math.max(...characters.map(c=>c.adapter.root.position.x+.45));
+    const maxY=Math.max(...characters.map(c=>(c.adapter.point?.('head')?.y||c.height*.85)+.25));
+    target.set((minX+maxX)/2,maxY*.51,characters.reduce((s,c)=>s+c.adapter.root.position.z,0)/characters.length);
+    distance=Math.max((maxX-minX)*1.12/(2*Math.tan(THREE.MathUtils.degToRad(38)/2)*(w/h)),maxY*1.35/(2*Math.tan(THREE.MathUtils.degToRad(38)/2)));
+  }else{
+    const close=shot.shot==='close';
+    target.set(subject.adapter.root.position.x,head.y-subject.height*(close?.12:.21),subject.adapter.root.position.z);
+    distance=subject.height*(close?1.55:1.9);
+  }
+  const push=1-Math.min(.025,Math.max(0,t-timeline.shots[shotStart].start)*.003);
+  camera.position.set(target.x+Math.sin(t*.31+timeline.seed)*.006,target.y+.05,target.z+distance*push);
+  camera.lookAt(target);camera.rotation.z=Math.sin(t*.39+timeline.seed)*.001;
+  for(const c of characters){
+    const peer=characters.find(o=>o.id===c.config.facing);
+    c.adapter.lookAt(peer?.adapter.point?.('head') || camera.position);
+    c.adapter.update(0);
   }
   environment.update(t);
   renderer.render(scene, camera);
@@ -241,9 +237,9 @@ function renderFrame(
           ? 0.9 + 0.1 * ease((t - cap.start) / 0.09)
           : 1;
       ctx.save();
-      ctx.translate(w / 2, h * 0.72);
+      ctx.translate(w / 2, h * (timeline.spec.captions.position ?? .72));
       ctx.scale(pop, pop);
-      ctx.font = `900 ${Math.round(h * 0.052)}px Arial, sans-serif`;
+      ctx.font = `900 ${Math.round(h * (timeline.spec.captions.size ?? .052))}px Arial, sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.lineJoin = "round";
@@ -253,7 +249,7 @@ function renderFrame(
         timeline.spec.captions.style === "yellow_pop" ? "#ffe651" : "white";
       const rows = cap.text.split("\n");
       rows.forEach((s: string, j: number) => {
-        const y = (j - (rows.length - 1) / 2) * h * 0.061;
+        const y = (j - (rows.length - 1) / 2) * h * (timeline.spec.captions.size ?? .052) * 1.18;
         if (timeline.spec.captions.style === "boxed") {
           const m = ctx.measureText(s);
           ctx.save();
@@ -311,6 +307,7 @@ async function exportMP4(frames = timeline.frames) {
   load,
   renderFrame,
   exportMP4,
+  get diagnostics() { return characters.map(c=>({id:c.id,...c.adapter.diagnostics?.()})); },
   get mouthState() {
     return mouthState;
   },

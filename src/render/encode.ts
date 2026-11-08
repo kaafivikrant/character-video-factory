@@ -101,7 +101,11 @@ export async function mux(t: any, dir: string, encoder: string) {
     );
     output = "mixed";
   }
-  filters.push(`[${output}]loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000[out]`);
+  // Leave transient headroom before integrated normalization. Voice-only
+  // mixes can otherwise hit the true-peak ceiling first and remain quiet.
+  filters.push(
+    `[${output}]volume=1.5dB,alimiter=limit=0.84:attack=5:release=50:level=false,loudnorm=I=-14:TP=-1.5:LRA=11,loudnorm=I=-13:TP=-1.5:LRA=11,aresample=48000[out]`,
+  );
   await run(
     "ffmpeg",
     [

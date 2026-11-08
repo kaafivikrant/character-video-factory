@@ -57,3 +57,16 @@ export async function fitAudio(audio: any, seconds: number) {
         : undefined,
   };
 }
+
+/** Fit a group using one shared tempo ratio so adjacent lines never jump in pace. */
+export async function fitAudioGroup(audio: any[], totalSeconds: number) {
+  if (!audio.length || !Number.isFinite(totalSeconds) || totalSeconds <= 0)
+    throw new Error("Audio group and target duration must be positive");
+  const sourceTotal = audio.reduce((sum, item) => sum + item.duration, 0);
+  if (!Number.isFinite(sourceTotal) || sourceTotal <= 0)
+    throw new Error("Audio group contains an invalid duration");
+  const sharedTempo = sourceTotal / totalSeconds;
+  return Promise.all(
+    audio.map((item) => fitAudio(item, item.duration / sharedTempo)),
+  );
+}

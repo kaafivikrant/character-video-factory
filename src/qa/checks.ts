@@ -62,6 +62,17 @@ export async function qa(dir: string) {
       actual: probe.format.duration,
       expected: t.total,
     });
+    const promptLeakLines = t.lines.flatMap((line: any) => {
+      const words = String(line.text).trim().split(/\s+/).filter(Boolean).length;
+      const seconds = Number(line.end) - Number(line.start);
+      const limit = Math.max(10, words * 1.4 + 3);
+      return seconds > limit ? [{ line: line.index + 1, words, seconds, limit }] : [];
+    });
+    add(
+      "speech duration matches script",
+      promptLeakLines.length === 0,
+      promptLeakLines.length ? promptLeakLines : "all lines within word-count duration bounds",
+    );
     const audio = await run("ffmpeg", [
       "-hide_banner",
       "-i",

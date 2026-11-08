@@ -99,7 +99,7 @@ export const stripTags = (s: string) =>
     .replace(/\[[^\]]*\]/g, "")
     .replace(/\s+/g, " ")
     .trim();
-export function directLines(lines: Line[], seed: number) {
+export function directLines(lines: Line[], seed: number, voicePrompt?: string) {
   const previous: string[] = [];
   return lines.map((line, i) => {
     const em = emotionTable[line.emotion];
@@ -118,28 +118,16 @@ export function directLines(lines: Line[], seed: number) {
     )
       pitch = pitch === "flat" ? "lively" : "flat";
     previous.push(pitch);
-    const tags = [...new Set([...em.tags, pitchTags[pitch], ...line.tags])];
-    const words = stripTags(line.text).split(" ");
-    const availableSpots = Math.max(1, Math.floor(words.length / 3));
-    const slots = tags.slice();
-    // Keep all short-line direction by combining free-form descriptions.
-    while (slots.length > availableSpots * 2) {
-      slots[slots.length - 2] += ", " + slots.pop();
-    }
-    let text = "",
-      cursor = 0;
-    for (let j = 0; j < slots.length; j += 2) {
-      text +=
-        slots
-          .slice(j, j + 2)
-          .map((t) => `[${t}]`)
-          .join(" ") +
-        " " +
-        words.slice(cursor, cursor + 3).join(" ") +
-        " ";
-      cursor += 3;
-    }
-    text += words.slice(cursor).join(" ");
+    // Fish accepts delivery directions only as inline bracket tags inside text.
+    // Long shared/line prose directions were placed there previously and were
+    // spoken verbatim by the API. Keep the payload to short tags plus script.
+    const tags = [...new Set([
+      ...(line.tags || []).slice(0, 1),
+      em.tags[0],
+      pitchTags[pitch],
+    ].filter((tag): tag is string => Boolean(tag)))].slice(0, 2);
+    const spokenText = stripTags(line.text);
+    const text = `${tags.map((tag) => `[${tag}]`).join(" ")} ${spokenText}`.trim();
     return {
       ...line,
       pitch,
@@ -147,14 +135,16 @@ export function directLines(lines: Line[], seed: number) {
       normalize: !tags.some((t) => /sigh|pause|laugh|breath/i.test(t)),
       speed:
         line.speed ??
-        Math.max(
-          0.5,
-          Math.min(
-            2,
-            (1 + (em.speed - 1) * line.intensity) *
-              (1 + (random(seed, i) - 0.5) * 0.12),
-          ),
-        ),
+        (voicePrompt
+          ? 1
+          : Math.max(
+              0.5,
+              Math.min(
+                2,
+                (1 + (em.speed - 1) * line.intensity) *
+                  (1 + (random(seed, i) - 0.5) * 0.12),
+              ),
+            )),
       gesture: line.gesture || em.gesture,
       face: em.face,
       pause_after: line.pause_after ?? 0.1 + random(seed, i + 100) * 0.1,
